@@ -172,6 +172,7 @@ export async function processAssessment(
 ): Promise<AssessmentResult> {
   // For demo mode, return mock data without calling backend
   if (demoMode) {
+    console.log('[API] Using demo mode');
     return mockDemoAssessment;
   }
 
@@ -180,17 +181,34 @@ export async function processAssessment(
   formData.append("answer_sheet", answerSheet);
   formData.append("demo_mode", "false");
 
-  const response = await fetch(`${API_URL}/api/assessment/process`, {
+  const url = `${API_URL}/api/assessment/process`;
+  console.log('[API] POST request to:', url);
+  console.log('[API] FormData fields:', Array.from(formData.keys()));
+  console.log('[API] Question paper:', questionPaper.name, questionPaper.type, questionPaper.size);
+  console.log('[API] Answer sheet:', answerSheet.name, answerSheet.type, answerSheet.size);
+
+  const response = await fetch(url, {
     method: "POST",
     body: formData,
   });
 
+  console.log('[API] Response status:', response.status, response.statusText);
+  
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.detail || "Failed to process assessment");
+    const errorText = await response.text();
+    console.error('[API] Error response:', errorText);
+    let errorDetail;
+    try {
+      const errorJson = JSON.parse(errorText);
+      errorDetail = errorJson.detail || errorText;
+    } catch {
+      errorDetail = errorText;
+    }
+    throw new Error(errorDetail);
   }
 
   const result = await response.json();
+  console.log('[API] Response result:', result);
   
   // Poll for completion if status is not completed
   if (result.status !== "completed" && result.status !== "failed") {
@@ -207,12 +225,20 @@ async function pollForCompletion(assessmentId: string): Promise<AssessmentResult
   while (attempts < maxAttempts) {
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    const response = await fetch(`${API_URL}/api/assessment/${assessmentId}`);
+    const url = `${API_URL}/api/assessment/${assessmentId}`;
+    console.log(`[API] Polling attempt ${attempts + 1}/${maxAttempts}:`, url);
+    
+    const response = await fetch(url);
+    console.log(`[API] Poll status:`, response.status, response.statusText);
+    
     if (!response.ok) {
-      throw new Error("Failed to fetch assessment status");
+      const errorText = await response.text();
+      console.error('[API] Poll error:', errorText);
+      throw new Error(`Failed to fetch assessment status: ${response.status}`);
     }
     
     const result = await response.json();
+    console.log(`[API] Poll result:`, result.status);
     
     if (result.status === "completed" || result.status === "failed") {
       return result;

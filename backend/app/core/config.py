@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     CORS_ORIGINS: List[str] = [
         "http://localhost:3000",
         "http://localhost:3001",
-        "https://*.vercel.app",
+        "https://frontend-obg6.vercel.app",
         "https://pdfassign.vercel.app"
     ]
     

@@ -55,7 +55,8 @@ export default function Home() {
       }
     } catch (error) {
       console.error("Processing failed:", error);
-      setError("Failed to process documents. Please try again.");
+      const errorMessage = error instanceof Error ? error.message : "Failed to process documents. Please try again.";
+      setError(errorMessage);
       setIsProcessing(false);
     }
   };
