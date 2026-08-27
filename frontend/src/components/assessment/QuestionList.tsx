@@ -24,12 +24,6 @@ const getConfidenceColor = (confidence: number) => {
   return "text-red-600";
 };
 
-const getConfidenceLabel = (confidence: number) => {
-  if (confidence >= 0.9) return "High";
-  if (confidence >= 0.7) return "Medium";
-  return "Low";
-};
-
 export function QuestionList({
   questions,
   selectedQuestionId,
@@ -52,7 +46,7 @@ export function QuestionList({
         return (
           <Card
             key={item.question.id}
-            className={`p-3 cursor-pointer transition-all hover:shadow-md border-2 ${
+            className={`p-3 cursor-pointer transition-all hover:shadow-md border-2 rounded-lg ${
               isSelected
                 ? "border-blue-500 bg-blue-50 shadow-md"
                 : "border-gray-200 hover:border-gray-300"
@@ -66,10 +60,10 @@ export function QuestionList({
                     <StatusIcon className={`w-3.5 h-3.5 ${config.textColor}`} />
                   </div>
                   <p className="font-semibold text-sm text-gray-900">
-                    Q{item.question.number}
+                    {item.question.number}
                   </p>
                   {item.question.sub_part && (
-                    <Badge variant="outline" className="text-xs h-5 bg-white">
+                    <Badge variant="outline" className="text-xs h-5 bg-white border-gray-200">
                       {item.question.sub_part.toUpperCase()}
                     </Badge>
                   )}
@@ -79,24 +73,16 @@ export function QuestionList({
                 </p>
                 
                 <div className="flex items-center gap-2 flex-wrap">
-                  <Badge 
-                    variant={config.variant} 
-                    className={`text-xs flex items-center gap-1 ${config.bgColor} ${config.textColor} border-0`}
-                  >
-                    <StatusIcon className="w-3 h-3" />
+                  <span className={`text-xs font-medium ${config.textColor}`}>
                     {config.label}
-                  </Badge>
+                  </span>
                   
                   {item.answer && (
-                    <Badge variant="outline" className="text-xs bg-white">
-                      P{item.answer.pages[0]}
-                      {isMultiPageAnswer && `+${item.answer.pages.length - 1}`}
+                    <Badge variant="outline" className="text-xs bg-white border-gray-200">
+                      Page {item.answer.pages[0]}
+                      {isMultiPageAnswer && ` +${item.answer.pages.length - 1}`}
                     </Badge>
                   )}
-                  
-                  <span className={`text-xs font-medium ${getConfidenceColor(item.question.confidence)}`}>
-                    {Math.round(item.question.confidence * 100)}%
-                  </span>
                 </div>
               </div>
               <ChevronRight className={`w-4 h-4 flex-shrink-0 mt-1 ${isSelected ? "text-blue-600" : "text-gray-400"}`} />

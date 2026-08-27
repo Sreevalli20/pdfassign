@@ -79,21 +79,21 @@ export function AnswerViewer({ answer, totalPages, pdfFile }: AnswerViewerProps)
   const currentPageIndex = answer ? answer.pages.indexOf(currentPage) : -1;
 
   return (
-    <Card className="flex flex-col h-full shadow-lg border-0">
-      <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-blue-50">
+    <Card className="flex flex-col h-full shadow-sm border border-gray-200 rounded-2xl overflow-hidden">
+      <div className="p-4 border-b border-gray-200 bg-gray-50">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <FileText className="w-4 h-4 text-white" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Answer Sheet</h3>
+              <h3 className="text-base font-semibold text-gray-900">Answer Sheet</h3>
               {answer && (
                 <div className="flex items-center gap-2">
-                  <Badge variant="secondary" className="text-xs bg-white">Answer {answer.label}</Badge>
+                  <Badge variant="secondary" className="text-xs bg-white border-gray-200">Answer {answer.label}</Badge>
                   {isMultiPage && (
                     <Badge variant="outline" className="text-xs bg-white border-blue-200 text-blue-700">
-                      Multi-page ({currentPageIndex + 1}/{answer.pages.length})
+                      {answer.pages.length} pages
                     </Badge>
                   )}
                 </div>
@@ -104,7 +104,7 @@ export function AnswerViewer({ answer, totalPages, pdfFile }: AnswerViewerProps)
             <Button variant="outline" size="icon" onClick={handleZoomOut} className="h-8 w-8">
               <ZoomOut className="w-4 h-4" />
             </Button>
-            <span className="text-sm font-medium text-gray-700 w-12 text-center bg-white px-2 py-1 rounded border">
+            <span className="text-sm font-medium text-gray-700 w-12 text-center bg-white px-2 py-1 rounded border border-gray-200">
               {Math.round(zoom * 100)}%
             </span>
             <Button variant="outline" size="icon" onClick={handleZoomIn} className="h-8 w-8">
@@ -117,11 +117,11 @@ export function AnswerViewer({ answer, totalPages, pdfFile }: AnswerViewerProps)
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto p-6 bg-gradient-to-br from-gray-100 to-blue-100" ref={containerRef}>
+      <div className="flex-1 overflow-auto p-6 bg-gray-100" ref={containerRef}>
         <div className="flex items-center justify-center min-h-full">
           {pdfFile ? (
             <div
-              className="relative bg-white shadow-2xl rounded-lg overflow-hidden"
+              className="relative bg-white shadow-lg rounded-lg overflow-hidden"
               style={{
                 transform: `scale(${zoom})`,
                 transformOrigin: "top center",
@@ -165,7 +165,7 @@ export function AnswerViewer({ answer, totalPages, pdfFile }: AnswerViewerProps)
             </div>
           ) : (
             <div
-              className="relative bg-white shadow-2xl rounded-lg flex flex-col items-center justify-center p-12"
+              className="relative bg-white shadow-lg rounded-lg flex flex-col items-center justify-center p-12"
               style={{
                 width: `${pageWidth}px`,
                 minHeight: "800px",
