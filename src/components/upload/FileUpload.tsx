@@ -26,6 +26,20 @@ export function FileUpload({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
+      // Validate file type
+      const validTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg'];
+      if (!validTypes.includes(selectedFile.type)) {
+        alert('Please upload a PDF or image file (PNG, JPG).');
+        return;
+      }
+      
+      // Validate file size (max 50MB)
+      const maxSize = 50 * 1024 * 1024;
+      if (selectedFile.size > maxSize) {
+        alert('File size must be less than 50MB.');
+        return;
+      }
+      
       onFileSelect(selectedFile);
     }
   };
@@ -45,6 +59,20 @@ export function FileUpload({
     setIsDragging(false);
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile) {
+      // Validate file type
+      const validTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg'];
+      if (!validTypes.includes(droppedFile.type)) {
+        alert('Please upload a PDF or image file (PNG, JPG).');
+        return;
+      }
+      
+      // Validate file size (max 50MB)
+      const maxSize = 50 * 1024 * 1024;
+      if (droppedFile.size > maxSize) {
+        alert('File size must be less than 50MB.');
+        return;
+      }
+      
       onFileSelect(droppedFile);
     }
   }, [onFileSelect]);

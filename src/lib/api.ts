@@ -2,180 +2,10 @@ import { AssessmentResult } from "@/types/assessment";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://pdfassign.onrender.com";
 
-// Mock demo data for frontend-only demo mode
-const mockDemoAssessment: AssessmentResult = {
-  id: "demo-123",
-  status: "completed",
-  questions: [
-    {
-      question: {
-        id: "q_1",
-        number: "1",
-        text: "Define photosynthesis and explain its importance in the ecosystem.",
-        page: 1,
-        bbox: { x: 0.10, y: 0.15, width: 0.80, height: 0.12 },
-        confidence: 0.98
-      },
-      status: "answered",
-      mapping: {
-        question_id: "q_1",
-        answer_id: "a_1",
-        confidence: 0.94,
-        mapping_method: "explicit_label"
-      },
-      answer: {
-        id: "a_1",
-        label: "1",
-        text: "Photosynthesis is the biological process used by plants and other organisms to convert light energy into chemical energy...",
-        pages: [2],
-        regions: [{ page: 2, bbox: { x: 0.08, y: 0.10, width: 0.82, height: 0.22 } }],
-        confidence: 0.94
-      }
-    },
-    {
-      question: {
-        id: "q_2",
-        number: "2",
-        text: "Explain the process of cellular respiration in plants.",
-        page: 1,
-        bbox: { x: 0.10, y: 0.30, width: 0.80, height: 0.10 },
-        confidence: 0.97
-      },
-      status: "unanswered",
-      mapping: undefined,
-      answer: undefined
-    },
-    {
-      question: {
-        id: "q_3a",
-        number: "3(a)",
-        text: "What is the chemical equation for photosynthesis?",
-        page: 2,
-        bbox: { x: 0.10, y: 0.15, width: 0.75, height: 0.08 },
-        confidence: 0.96,
-        sub_part: "a"
-      },
-      status: "answered",
-      mapping: {
-        question_id: "q_3a",
-        answer_id: "a_3a",
-        confidence: 0.95,
-        mapping_method: "explicit_label"
-      },
-      answer: {
-        id: "a_3a",
-        label: "3(a)",
-        text: "6CO2 + 6H2O + light energy → C6H12O6 + 6O2",
-        pages: [4, 5],
-        regions: [
-          { page: 4, bbox: { x: 0.08, y: 0.40, width: 0.82, height: 0.10 } },
-          { page: 5, bbox: { x: 0.08, y: 0.08, width: 0.82, height: 0.08 } }
-        ],
-        confidence: 0.95
-      }
-    },
-    {
-      question: {
-        id: "q_3b",
-        number: "3(b)",
-        text: "Explain the role of chlorophyll in photosynthesis.",
-        page: 2,
-        bbox: { x: 0.10, y: 0.25, width: 0.75, height: 0.08 },
-        confidence: 0.95,
-        sub_part: "b"
-      },
-      status: "answered",
-      mapping: {
-        question_id: "q_3b",
-        answer_id: "a_3b",
-        confidence: 0.90,
-        mapping_method: "explicit_label"
-      },
-      answer: {
-        id: "a_3b",
-        label: "3(b)",
-        text: "Chlorophyll is a green pigment found in plants that absorbs light energy...",
-        pages: [5],
-        regions: [{ page: 5, bbox: { x: 0.08, y: 0.20, width: 0.82, height: 0.18 } }],
-        confidence: 0.90
-      }
-    },
-    {
-      question: {
-        id: "q_4",
-        number: "4",
-        text: "Describe the light-dependent reactions of photosynthesis.",
-        page: 2,
-        bbox: { x: 0.10, y: 0.38, width: 0.80, height: 0.12 },
-        confidence: 0.97
-      },
-      status: "answered",
-      mapping: {
-        question_id: "q_4",
-        answer_id: "a_4",
-        confidence: 0.93,
-        mapping_method: "explicit_label"
-      },
-      answer: {
-        id: "a_4",
-        label: "4",
-        text: "The light-dependent reactions occur in the thylakoid membranes...",
-        pages: [4],
-        regions: [{ page: 4, bbox: { x: 0.08, y: 0.10, width: 0.82, height: 0.24 } }],
-        confidence: 0.93
-      }
-    },
-    {
-      question: {
-        id: "q_5",
-        number: "5",
-        text: "Compare and contrast photosynthesis and respiration.",
-        page: 3,
-        bbox: { x: 0.10, y: 0.15, width: 0.80, height: 0.12 },
-        confidence: 0.98
-      },
-      status: "answered",
-      mapping: {
-        question_id: "q_5",
-        answer_id: "a_5",
-        confidence: 0.91,
-        mapping_method: "explicit_label"
-      },
-      answer: {
-        id: "a_5",
-        label: "5",
-        text: "While both processes involve energy transformation, photosynthesis builds glucose...",
-        pages: [3],
-        regions: [{ page: 3, bbox: { x: 0.08, y: 0.12, width: 0.82, height: 0.28 } }],
-        confidence: 0.91
-      }
-    }
-  ],
-  unmatched_answers: [
-    {
-      id: "a_unmatched",
-      label: "99",
-      text: "This is an unclear answer that cannot be matched to any question.",
-      pages: [6],
-      regions: [{ page: 6, bbox: { x: 0.08, y: 0.10, width: 0.82, height: 0.15 } }],
-      confidence: 0.75
-    }
-  ],
-  total_pages: 6,
-  processing_time_seconds: 2.5
-};
-
 export async function processAssessment(
   questionPaper: File,
-  answerSheet: File,
-  demoMode: boolean = false
+  answerSheet: File
 ): Promise<AssessmentResult> {
-  // For demo mode, return mock data without calling backend
-  if (demoMode) {
-    console.log('[API] Using demo mode');
-    return mockDemoAssessment;
-  }
-
   const formData = new FormData();
   formData.append("question_paper", questionPaper);
   formData.append("answer_sheet", answerSheet);
@@ -197,14 +27,29 @@ export async function processAssessment(
   if (!response.ok) {
     const errorText = await response.text();
     console.error('[API] Error response:', errorText);
-    let errorDetail;
+    let userMessage = "We couldn't process the assessment. Please try again.";
+    
     try {
       const errorJson = JSON.parse(errorText);
-      errorDetail = errorJson.detail || errorText;
+      const detail = errorJson.detail || errorText;
+      
+      // Provide user-friendly messages for common errors
+      if (detail.includes("Invalid question paper format")) {
+        userMessage = "The question paper must be a PDF or image file (PNG, JPG).";
+      } else if (detail.includes("Invalid answer sheet format")) {
+        userMessage = "The answer sheet must be a PDF or image file (PNG, JPG).";
+      } else if (detail.includes("size")) {
+        userMessage = "The file is too large. Please upload a smaller file.";
+      } else if (detail.includes("timeout")) {
+        userMessage = "Processing took too long. Please try with smaller files.";
+      } else {
+        userMessage = detail;
+      }
     } catch {
-      errorDetail = errorText;
+      userMessage = "We couldn't process the assessment. Please make sure the files are valid PDFs or images and try again.";
     }
-    throw new Error(errorDetail);
+    
+    throw new Error(userMessage);
   }
 
   const result = await response.json();

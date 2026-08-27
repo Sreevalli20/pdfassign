@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProcessingView } from "@/components/processing/ProcessingView";
 import { QuestionList } from "@/components/assessment/QuestionList";
-import { AnswerViewer } from "@/components/assessment/AnswerViewer";
 import { QuestionDetail } from "@/components/assessment/QuestionDetail";
 import { Badge } from "@/components/ui/badge";
 import { UnmatchedAnswers } from "@/components/assessment/UnmatchedAnswers";
@@ -18,6 +17,12 @@ import {
 } from "@/types/assessment";
 import { processAssessment, getAssessment } from "@/lib/api";
 import { Brain, FileText, Sparkles, ArrowLeft, Settings, HelpCircle, Upload, Search, Highlighter, CheckCircle } from "lucide-react";
+import dynamic from "next/dynamic";
+
+const AnswerViewer = dynamic(() => import("@/components/assessment/AnswerViewer").then(mod => ({ default: mod.AnswerViewer })), {
+  ssr: false,
+  loading: () => <div className="flex items-center justify-center h-64">Loading PDF viewer...</div>
+});
 
 export default function Home() {
   const [questionPaper, setQuestionPaper] = useState<UploadedFile | null>(null);
@@ -26,7 +31,6 @@ export default function Home() {
   const [processingStatus, setProcessingStatus] = useState<ProcessingStatus>("uploading");
   const [assessment, setAssessment] = useState<AssessmentResult | null>(null);
   const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
-  const [demoMode, setDemoMode] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleProcess = async () => {
@@ -38,8 +42,7 @@ export default function Home() {
     try {
       const result = await processAssessment(
         questionPaper.file,
-        answerSheet.file,
-        demoMode
+        answerSheet.file
       );
       
       // If result is not completed, poll for completion
@@ -91,24 +94,6 @@ export default function Home() {
     setIsProcessing(false);
   };
 
-  const handleTryDemo = async () => {
-    setIsProcessing(true);
-    setProcessingStatus("uploading");
-    setError(null);
-    try {
-      const dummyFile = new File([""], "demo.pdf", { type: "application/pdf" });
-      const result = await processAssessment(dummyFile, dummyFile, true);
-      setAssessment(result);
-      if (result.questions.length > 0) {
-        setSelectedQuestionId(result.questions[0].question.id);
-      }
-      setIsProcessing(false);
-    } catch (error) {
-      console.error("Demo failed:", error);
-      setError("Demo failed. Please try again.");
-      setIsProcessing(false);
-    }
-  };
 
   const handleReset = () => {
     setAssessment(null);
@@ -261,8 +246,8 @@ export default function Home() {
                     <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
                       <Sparkles className="w-5 h-5 text-red-600" />
                     </div>
-                    <div>
-                      <p className="text-red-900 font-semibold">Unable to process the assessment</p>
+                    <div className="flex-1">
+                      <p className="text-red-900 font-semibold">Processing Error</p>
                       <p className="text-red-700 text-sm">{error}</p>
                     </div>
                   </div>
