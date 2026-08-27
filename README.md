@@ -54,8 +54,7 @@ A production-quality web application for automated assessment of handwritten ans
 
 ### Prerequisites
 - Node.js 20+
-- Python 3.14.6 (for production/Docker)
-- Python 3.13 (recommended for local development due to package compatibility)
+- Python 3.13 (for local development and production)
 - npm or yarn
 
 ### Backend Setup
@@ -199,11 +198,12 @@ The application is configured for deployment on Render using `render.yaml`.
 
 ## Important Limitations
 
-- **Python 3.14.6 Compatibility**: Python 3.14 is very new and some packages (Pydantic, PyO3) do not yet support it. For local development, use Python 3.13. For production deployment, use Docker which guarantees Python 3.14.6 compatibility.
+- **Python Version**: Updated to Python 3.13 due to package compatibility issues with Python 3.14. The assignment requirement for Python 3.14.6 could not be met because Pydantic and PyO3 do not yet support Python 3.14.
 - OCR accuracy depends on handwriting quality
 - Complex multi-column layouts may require manual review
 - Very large documents may have longer processing times
 - Demo mode uses static data, not real AI processing
+- Frontend demo mode works without backend for immediate evaluation
 
 ## Live URL
 
