@@ -4,7 +4,12 @@ from typing import List
 
 class Settings(BaseSettings):
     PORT: int = 8000
-    CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:3001"]
+    CORS_ORIGINS: List[str] = [
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "https://*.vercel.app",
+        "https://pdfassign.vercel.app"
+    ]
     
     # AI Configuration
     AI_API_KEY: str = ""
