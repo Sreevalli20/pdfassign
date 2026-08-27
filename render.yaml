@@ -1,11 +1,8 @@
 services:
-  # Frontend Service (with built-in demo mode)
+  # Backend Service (Docker)
   - type: web
-    name: vedaai-frontend
-    runtime: node
-    buildCommand: cd frontend && npm install && npm run build
-    startCommand: cd frontend && npm start
+    name: vedaai-backend
+    env: docker
     plan: free
-    envVars:
-      - key: NEXT_PUBLIC_API_URL
-        value: https://vedaai-backend.onrender.com
+    dockerContext: .
+    dockerfilePath: ./Dockerfile

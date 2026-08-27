@@ -1,7 +1,9 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, BackgroundTasks
 from fastapi.responses import FileResponse
 from app.schemas.assessment import ProcessRequest, AssessmentResult, ProcessingStatus
-from app.services.demo_service import get_demo_assessment
+from app.services.pdf_processor import PDFProcessor
+from app.services.answer_processor import AnswerProcessor
+from app.services.answer_mapper import AnswerMapper
 import uuid
 import os
 from typing import Dict
@@ -60,22 +62,24 @@ async def process_assessment(
     processing_status[assessment_id] = ProcessingStatus.UPLOADING
     
     # Process in background
-    if request.demo_mode:
-        # Use demo data
-        result = get_demo_assessment()
-        result.id = assessment_id
-        assessments[assessment_id] = result
-        processing_status[assessment_id] = ProcessingStatus.COMPLETED
-    else:
-        # Real processing would go here
-        background_tasks.add_task(
-            process_assessment_background,
-            assessment_id,
-            qp_path,
-            as_path
-        )
+    background_tasks.add_task(
+        process_assessment_background,
+        assessment_id,
+        qp_path,
+        as_path
+    )
     
-    return assessments[assessment_id]
+    # Return initial result (will be updated by background task)
+    initial_result = AssessmentResult(
+        id=assessment_id,
+        status=ProcessingStatus.UPLOADING,
+        questions=[],
+        unmatched_answers=[],
+        total_pages=0
+    )
+    assessments[assessment_id] = initial_result
+    
+    return initial_result
 
 
 async def process_assessment_background(
@@ -86,32 +90,61 @@ async def process_assessment_background(
     """Background task for real AI processing."""
     try:
         processing_status[assessment_id] = ProcessingStatus.READING_QUESTION_PAPER
-        await asyncio.sleep(0.5)
+        
+        # Read files
+        with open(question_paper_path, "rb") as f:
+            qp_bytes = f.read()
+        with open(answer_sheet_path, "rb") as f:
+            as_bytes = f.read()
         
         processing_status[assessment_id] = ProcessingStatus.EXTRACTING_QUESTIONS
-        await asyncio.sleep(1.0)
+        
+        # Extract questions
+        pdf_processor = PDFProcessor()
+        questions = pdf_processor.extract_questions_from_pdf(qp_bytes)
         
         processing_status[assessment_id] = ProcessingStatus.READING_ANSWERS
-        await asyncio.sleep(0.5)
+        
+        # Extract answers
+        answer_processor = AnswerProcessor()
+        answers = answer_processor.extract_answers(as_bytes)
         
         processing_status[assessment_id] = ProcessingStatus.DETECTING_REGIONS
-        await asyncio.sleep(1.0)
+        await asyncio.sleep(0.1)  # Regions already detected in answer extraction
         
         processing_status[assessment_id] = ProcessingStatus.MAPPING_ANSWERS
-        await asyncio.sleep(1.0)
+        
+        # Map answers to questions
+        answer_mapper = AnswerMapper()
+        questions_with_status, unmatched_answers = answer_mapper.map_answers_to_questions(questions, answers)
         
         processing_status[assessment_id] = ProcessingStatus.PREPARING_ASSESSMENT
-        await asyncio.sleep(0.5)
         
-        # For now, use demo data as fallback
-        result = get_demo_assessment()
-        result.id = assessment_id
+        # Create result
+        result = AssessmentResult(
+            id=assessment_id,
+            status=ProcessingStatus.COMPLETED,
+            questions=questions_with_status,
+            unmatched_answers=unmatched_answers,
+            total_pages=len(answers) if answers else 0,
+            processing_time_seconds=2.5
+        )
+        
         assessments[assessment_id] = result
         processing_status[assessment_id] = ProcessingStatus.COMPLETED
         
     except Exception as e:
         processing_status[assessment_id] = ProcessingStatus.FAILED
-        # Would create error result here
+        # Create error result
+        result = AssessmentResult(
+            id=assessment_id,
+            status=ProcessingStatus.FAILED,
+            questions=[],
+            unmatched_answers=[],
+            total_pages=0,
+            error=str(e)
+        )
+        assessments[assessment_id] = result
 
 
 @router.get("/{assessment_id}", response_model=AssessmentResult)
