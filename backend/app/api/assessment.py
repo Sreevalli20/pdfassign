@@ -152,18 +152,7 @@ async def process_assessment(
     })
     
     # Process synchronously (works better with Render's ephemeral environment)
-    try:
-        result = await process_assessment_sync(assessment_id, qp_path, as_path)
-    finally:
-        # Clean up uploaded files after processing to save disk space
-        try:
-            if os.path.exists(qp_path):
-                os.remove(qp_path)
-            if os.path.exists(as_path):
-                os.remove(as_path)
-            gc.collect()
-        except Exception as e:
-            print(f"Warning: Could not clean up uploaded files: {e}")
+    result = await process_assessment_sync(assessment_id, qp_path, as_path)
     
     return result
 
