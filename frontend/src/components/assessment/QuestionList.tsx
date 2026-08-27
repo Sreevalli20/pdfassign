@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { QuestionWithStatus, QuestionStatus } from "@/types/assessment";
-import { CheckCircle, XCircle, AlertCircle, FileText } from "lucide-react";
+import { CheckCircle2, XCircle, AlertCircle, FileText, ChevronRight } from "lucide-react";
 
 interface QuestionListProps {
   questions: QuestionWithStatus[];
@@ -11,11 +11,11 @@ interface QuestionListProps {
 
 const statusConfig: Record<
   QuestionStatus,
-  { label: string; variant: "success" | "warning" | "destructive"; icon: any }
+  { label: string; variant: "success" | "warning" | "destructive"; icon: any; bgColor: string; textColor: string }
 > = {
-  answered: { label: "Answered", variant: "success", icon: CheckCircle },
-  unanswered: { label: "Unanswered", variant: "destructive", icon: XCircle },
-  needs_review: { label: "Needs Review", variant: "warning", icon: AlertCircle },
+  answered: { label: "Answered", variant: "success", icon: CheckCircle2, bgColor: "bg-green-50", textColor: "text-green-700" },
+  unanswered: { label: "Unanswered", variant: "destructive", icon: XCircle, bgColor: "bg-red-50", textColor: "text-red-700" },
+  needs_review: { label: "Needs Review", variant: "warning", icon: AlertCircle, bgColor: "bg-yellow-50", textColor: "text-yellow-700" },
 };
 
 const getConfidenceColor = (confidence: number) => {
@@ -35,7 +35,6 @@ export function QuestionList({
   selectedQuestionId,
   onSelectQuestion,
 }: QuestionListProps) {
-  // Sort questions to ensure proper ordering of sub-questions
   const sortedQuestions = [...questions].sort((a, b) => {
     const aNum = a.question.number;
     const bNum = b.question.number;
@@ -43,38 +42,34 @@ export function QuestionList({
   });
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold">Questions</h3>
-        <Badge variant="outline" className="text-xs">
-          {questions.length} total
-        </Badge>
-      </div>
-      
+    <div className="space-y-2">
       {sortedQuestions.map((item) => {
         const config = statusConfig[item.status];
         const StatusIcon = config.icon;
         const isMultiPageAnswer = item.answer && item.answer.pages.length > 1;
+        const isSelected = selectedQuestionId === item.question.id;
         
         return (
           <Card
             key={item.question.id}
-            className={`p-3 cursor-pointer transition-all hover:shadow-md ${
-              selectedQuestionId === item.question.id
-                ? "ring-2 ring-blue-500 border-blue-500 bg-blue-50"
-                : ""
+            className={`p-3 cursor-pointer transition-all hover:shadow-md border-2 ${
+              isSelected
+                ? "border-blue-500 bg-blue-50 shadow-md"
+                : "border-gray-200 hover:border-gray-300"
             }`}
             onClick={() => onSelectQuestion(item.question.id)}
           >
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <FileText className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                  <p className="font-semibold text-sm">
-                    Question {item.question.number}
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center ${config.bgColor}`}>
+                    <StatusIcon className={`w-3.5 h-3.5 ${config.textColor}`} />
+                  </div>
+                  <p className="font-semibold text-sm text-gray-900">
+                    Q{item.question.number}
                   </p>
                   {item.question.sub_part && (
-                    <Badge variant="outline" className="text-xs h-5">
+                    <Badge variant="outline" className="text-xs h-5 bg-white">
                       {item.question.sub_part.toUpperCase()}
                     </Badge>
                   )}
@@ -84,23 +79,27 @@ export function QuestionList({
                 </p>
                 
                 <div className="flex items-center gap-2 flex-wrap">
-                  <Badge variant={config.variant} className="text-xs flex items-center gap-1">
+                  <Badge 
+                    variant={config.variant} 
+                    className={`text-xs flex items-center gap-1 ${config.bgColor} ${config.textColor} border-0`}
+                  >
                     <StatusIcon className="w-3 h-3" />
                     {config.label}
                   </Badge>
                   
                   {item.answer && (
-                    <Badge variant="outline" className="text-xs">
-                      Page {item.answer.pages[0]}
+                    <Badge variant="outline" className="text-xs bg-white">
+                      P{item.answer.pages[0]}
                       {isMultiPageAnswer && `+${item.answer.pages.length - 1}`}
                     </Badge>
                   )}
                   
-                  <span className={`text-xs ${getConfidenceColor(item.question.confidence)}`}>
-                    {getConfidenceLabel(item.question.confidence)} ({Math.round(item.question.confidence * 100)}%)
+                  <span className={`text-xs font-medium ${getConfidenceColor(item.question.confidence)}`}>
+                    {Math.round(item.question.confidence * 100)}%
                   </span>
                 </div>
               </div>
+              <ChevronRight className={`w-4 h-4 flex-shrink-0 mt-1 ${isSelected ? "text-blue-600" : "text-gray-400"}`} />
             </div>
           </Card>
         );
