@@ -110,24 +110,9 @@ class PDFProcessor:
         return questions
     
     def extract_questions_from_pdf(self, pdf_bytes: bytes) -> List[Question]:
-        """Extract questions from PDF combining text extraction and OCR."""
-        # First try text extraction
+        """Extract questions from PDF using text extraction only (faster, no OCR)."""
+        # Use only text extraction for speed
         text = self.extract_text_from_pdf(pdf_bytes)
         questions = self.extract_questions_from_text(text)
-        
-        # If no questions found, try OCR if available
-        if not questions:
-            try:
-                images = self.pdf_to_images(pdf_bytes)
-                for i, image in enumerate(images):
-                    try:
-                        ocr_text = self.ocr_image(image)
-                        page_questions = self.extract_questions_from_text(ocr_text, page=i+1)
-                        questions.extend(page_questions)
-                    except Exception as e:
-                        print(f"Warning: OCR failed on page {i+1}: {e}")
-                        continue
-            except Exception as e:
-                print(f"Warning: Could not perform OCR: {e}")
         
         return questions

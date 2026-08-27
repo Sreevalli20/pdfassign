@@ -95,8 +95,8 @@ class AnswerProcessor:
         return regions
     
     def extract_answers(self, pdf_bytes: bytes) -> List[Answer]:
-        """Extract answers from answer sheet PDF with improved filtering."""
-        # First try to get text directly from PDF
+        """Extract answers from answer sheet PDF using text extraction only (faster, no OCR)."""
+        # Use only text extraction for speed
         try:
             pdf_file = io.BytesIO(pdf_bytes)
             reader = pypdf.PdfReader(pdf_file)
@@ -134,44 +134,4 @@ class AnswerProcessor:
                 return answers
         except Exception as e:
             print(f"Warning: Could not extract text from PDF: {e}")
-        
-        # Fallback to OCR if available
-        try:
-            images = self.pdf_to_images(pdf_bytes)
-        except Exception as e:
-            print(f"Warning: Could not convert PDF to images: {e}")
             return []
-        
-        answers = []
-        answer_id = 0
-        
-        for page_num, image in enumerate(images, start=1):
-            try:
-                ocr_text, boxes = self.ocr_image_with_boxes(image)
-                labels = self.extract_answer_labels(ocr_text)
-                regions = self.detect_answer_regions(image, labels)
-                
-                for i, (label, _, _, _, _) in enumerate(labels):
-                    # Filter out invalid labels from OCR
-                    try:
-                        num = int(label.split('(')[0])
-                        if num > 100:  # Skip OCR noise
-                            continue
-                    except:
-                        pass
-                    
-                    answer_id += 1
-                    answer = Answer(
-                        id=f"a_{answer_id}",
-                        label=label,
-                        text=ocr_text[:100] + "..." if len(ocr_text) > 100 else ocr_text,
-                        pages=[page_num],
-                        regions=[regions[i]] if i < len(regions) else [],
-                        confidence=0.75
-                    )
-                    answers.append(answer)
-            except Exception as e:
-                print(f"Warning: Failed to process page {page_num}: {e}")
-                continue
-        
-        return answers
