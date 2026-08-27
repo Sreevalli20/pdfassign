@@ -8,7 +8,8 @@ class Settings(BaseSettings):
         "http://localhost:3000",
         "http://localhost:3001",
         "https://assign-f5p4.vercel.app",
-        "https://pdfassign.onrender.com"
+        "https://pdfassign.onrender.com",
+        "*"  # Allow all origins for development
     ]
     
     # AI Configuration

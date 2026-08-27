@@ -1,4 +1,4 @@
-FROM python:3.14.6-slim
+FROM python:3.11-slim
 
 WORKDIR /app
 
@@ -18,7 +18,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/ .
 
 # Create temp directory
-RUN mkdir -p temp/uploads temp/processed
+RUN mkdir -p temp/uploads temp/processed temp/storage
 
 # Expose port (Render will set $PORT)
 EXPOSE 8000

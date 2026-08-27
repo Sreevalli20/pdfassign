@@ -35,14 +35,17 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
         setPdfLoading(true);
         setPdfError(null);
         try {
+          console.log('[AnswerViewer] Fetching PDF for assessment:', assessmentId);
           const blob = await getAnswerSheetPdf(assessmentId);
+          console.log('[AnswerViewer] Received PDF blob, size:', blob.size, 'type:', blob.type);
           if (blob.size === 0) {
             throw new Error('Received empty PDF file');
           }
           setPdfBlob(blob);
         } catch (error) {
-          console.error('Failed to fetch PDF:', error);
-          setPdfError('Failed to load answer sheet PDF from server. Please try again.');
+          console.error('[AnswerViewer] Failed to fetch PDF:', error);
+          const errorMessage = error instanceof Error ? error.message : 'Failed to load answer sheet PDF from server. Please try again.';
+          setPdfError(errorMessage);
         } finally {
           setPdfLoading(false);
         }

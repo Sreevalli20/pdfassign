@@ -6,6 +6,7 @@ import io
 import re
 from typing import List, Tuple, Optional
 from app.schemas.assessment import Answer, AnswerRegion, BoundingBox
+import gc
 
 
 class AnswerProcessor:
@@ -40,38 +41,30 @@ class AnswerProcessor:
         return '\n'.join(text_lines), boxes
     
     def extract_answer_labels(self, ocr_text: str) -> List[Tuple[str, int, int, int, int]]:
-        """Extract answer labels (e.g., '1', '2', '3(a)') from OCR text with more lenient pattern."""
+        """Extract answer labels (e.g., 'Question 1', 'Question 2') from OCR text."""
         labels = []
         
-        # More lenient pattern - match numbers that could be question labels
-        # Accept: standalone numbers, numbers with parentheses, numbers followed by colon/period
-        label_patterns = [
-            r'^(\d+(?:\([a-z]\))?)\s*[\.:]?\s*$',  # Number at start of line
-            r'^(\d+)\s*$',  # Just a number
-            r'^(\d+)\s*[\.:]',  # Number followed by colon or period
-        ]
+        # Pattern for "Question X" or "Question X -" headers
+        question_pattern = r'^Question\s+(\d+)(?:\s*–|\s*-|\s+|$)'
         
         lines = ocr_text.split('\n')
         for line in lines:
             line = line.strip()
             
-            for pattern in label_patterns:
-                match = re.match(pattern, line)
-                if match:
-                    label = match.group(1)
-                    
-                    # Filter out obviously invalid numbers
-                    try:
-                        num = int(label.split('(')[0])
-                        if num > 100:  # Reasonable upper bound
-                            continue
-                    except:
-                        pass
-                    
-                    # Only add if line is short (likely just a label)
-                    if len(line) < 20:
-                        labels.append((label, 0, 0, 0, 0))
-                    break
+            match = re.match(question_pattern, line, re.IGNORECASE)
+            if match:
+                label = match.group(1)
+                
+                # Filter out obviously invalid numbers
+                try:
+                    num = int(label)
+                    if num > 100:  # Reasonable upper bound
+                        continue
+                except:
+                    pass
+                
+                # Add the label
+                labels.append((label, 0, 0, 0, 0))
         
         return labels
     
@@ -107,41 +100,67 @@ class AnswerProcessor:
         try:
             pdf_file = io.BytesIO(pdf_bytes)
             reader = pypdf.PdfReader(pdf_file)
-            text = ""
-            for page in reader.pages:
-                text += page.extract_text() + "\n"
+            total_pages = len(reader.pages)
             
-            # Extract answer labels from text
-            labels = self.extract_answer_labels(text)
+            # Extract text page by page to track which page each question appears on
+            page_texts = []
+            for page_num, page in enumerate(reader.pages):
+                text = page.extract_text()
+                page_texts.append((page_num + 1, text))
             
-            if labels:
-                answers = []
-                answer_id = 0
-                total_pages = len(reader.pages)
+            pdf_file.close()
+            del pdf_file
+            del reader
+            gc.collect()
+            
+            # Find "Question X" headers and their page ranges
+            question_pages = {}  # question_num -> [start_page, end_page]
+            current_question = None
+            
+            for page_num, text in page_texts:
+                # Look for "Question X" headers
+                question_match = re.search(r'Question\s+(\d+)', text, re.IGNORECASE)
+                if question_match:
+                    question_num = int(question_match.group(1))
+                    if current_question is not None:
+                        # End previous question
+                        question_pages[current_question] = [
+                            question_pages[current_question][0],
+                            page_num - 1
+                        ]
+                    # Start new question
+                    current_question = question_num
+                    question_pages[question_num] = [page_num, page_num]  # Will update end page later
+            
+            # Close the last question
+            if current_question is not None:
+                question_pages[current_question][1] = total_pages
+            
+            # Create Answer objects from detected question pages
+            answers = []
+            for question_num, (start_page, end_page) in sorted(question_pages.items()):
+                pages = list(range(start_page, end_page + 1))
                 
-                for i, (label, _, _, _, _) in enumerate(labels):
-                    answer_id += 1
-                    # Distribute answers across pages
-                    page_num = (i % total_pages) + 1 if total_pages > 0 else 1
-                    
-                    # Create bounding box based on position
-                    y_pos = min(0.1 + i * 0.08, 0.85)
-                    bbox = BoundingBox(x=0.1, y=y_pos, width=0.8, height=0.15)
-                    
-                    answer = Answer(
-                        id=f"a_{answer_id}",
-                        label=label,
-                        text=f"Answer for question {label}",
-                        pages=[page_num],
-                        regions=[AnswerRegion(page=page_num, bbox=bbox)],
-                        confidence=0.70
-                    )
-                    answers.append(answer)
+                # Create bounding box for each page
+                regions = []
+                for page in pages:
+                    y_pos = 0.1  # Start of page
+                    bbox = BoundingBox(x=0.1, y=y_pos, width=0.8, height=0.8)
+                    regions.append(AnswerRegion(page=page, bbox=bbox))
                 
-                return answers
-            else:
-                # No labels found, return empty list
-                return []
+                answer = Answer(
+                    id=f"a_{question_num}",
+                    label=str(question_num),
+                    text=f"Answer for question {question_num}",
+                    pages=pages,
+                    regions=regions,
+                    confidence=0.85
+                )
+                answers.append(answer)
+            
+            return answers
         except Exception as e:
             print(f"Warning: Could not extract text from PDF: {e}")
+            import traceback
+            traceback.print_exc()
             return []

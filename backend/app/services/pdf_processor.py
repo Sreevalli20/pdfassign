@@ -4,8 +4,9 @@ import pytesseract
 from PIL import Image
 import io
 import re
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Set
 from app.schemas.assessment import Question, BoundingBox
+import gc
 
 
 class PDFProcessor:
@@ -35,15 +36,20 @@ class PDFProcessor:
         """Extract text from image using Tesseract OCR."""
         return pytesseract.image_to_string(image, config=self.ocr_config)
     
-    def extract_questions_from_text(self, text: str, page: int = 1) -> List[Question]:
-        """Extract questions from text using improved pattern matching."""
+    def extract_questions_from_text(self, text: str, page: int = 1, seen_numbers: Set[str] = None) -> List[Question]:
+        """Extract questions from text using improved pattern matching for task-based questions."""
+        if seen_numbers is None:
+            seen_numbers = set()
+            
         questions = []
         
         # Split text into lines for better analysis
         lines = text.split('\n')
         
-        # Track current question number to detect duplicates
-        seen_numbers = set()
+        # Track assignment context
+        current_assignment = None
+        assignment_number = 0
+        in_tasks_section = False
         
         i = 0
         while i < len(lines):
@@ -54,40 +60,45 @@ class PDFProcessor:
                 i += 1
                 continue
             
-            # Pattern for question numbers at start of line
-            # Must be: number followed by period/space, then text
-            # Avoid matching task lists, page numbers, or other numbered items
-            question_match = re.match(r'^(\d+(?:\([a-z]\))?)\.[\s]+(.+)', line)
+            # Detect assignment headers (e.g., "Assignment 1:", "Assignment 2:")
+            assignment_match = re.match(r'^Assignment\s+(\d+):', line, re.IGNORECASE)
+            if assignment_match:
+                assignment_number = int(assignment_match.group(1))
+                current_assignment = assignment_number
+                in_tasks_section = False
+                i += 1
+                continue
             
-            if question_match:
-                number = question_match.group(1)
-                question_text = question_match.group(2).strip()
+            # Detect "Tasks:" section header
+            if line.lower() == 'tasks:':
+                in_tasks_section = True
+                i += 1
+                continue
+            
+            # Pattern for task numbers at start of line (in Tasks sections)
+            # Format: "1. " or "2. " followed by task description
+            task_match = re.match(r'^(\d+)\.\s+(.+)', line)
+            
+            if task_match and current_assignment and in_tasks_section:
+                task_number = int(task_match.group(1))
+                task_text = task_match.group(2).strip()
                 
-                # Skip if this looks like a task/instruction rather than a question
-                # Task indicators: "Create", "Write", "Generate", "Implement", etc.
-                task_indicators = ['create', 'write', 'generate', 'implement', 'make', 'build', 'develop']
-                if any(question_text.lower().startswith(indicator) for indicator in task_indicators):
+                # Create composite question number (e.g., "1.1", "1.2" for Assignment 1, tasks 1-6)
+                composite_number = f"{current_assignment}.{task_number}"
+                
+                # Skip if we've already seen this composite number
+                if composite_number in seen_numbers:
                     i += 1
-                    continue
-                
-                # Skip if we've already seen this number (avoid duplicates)
-                if number in seen_numbers:
-                    i += 1
-                    continue
-                
-                # Only accept if it looks like a question (has question words or reasonable length)
-                question_words = ['what', 'why', 'how', 'when', 'where', 'who', 'which', 'explain', 'describe', 'define', 'compare', 'discuss', 'analyze']
-                has_question_word = any(word in question_text.lower() for word in question_words)
-                is_reasonable_length = len(question_text) > 10 and len(question_text) < 500
-                
-                if has_question_word or is_reasonable_length:
-                    # Extract sub-part if present
-                    sub_part = None
-                    if '(' in number and ')' in number:
-                        sub_part = number[number.index('(')+1:number.index(')')]
+                else:
+                    # Get full task text (may span multiple lines)
+                    full_text = task_text
+                    j = i + 1
+                    while j < len(lines) and lines[j].strip() and not re.match(r'^\d+\.', lines[j].strip()):
+                        full_text += " " + lines[j].strip()
+                        j += 1
                     
                     # Generate question ID
-                    q_id = f"q_{number.replace('(', '_').replace(')', '_').replace('.', '_')}"
+                    q_id = f"q_{current_assignment}_{task_number}"
                     
                     # Create bounding box (placeholder)
                     y_pos = min(0.1 + len(questions) * 0.03, 0.9)
@@ -95,24 +106,38 @@ class PDFProcessor:
                     
                     question = Question(
                         id=q_id,
-                        number=number,
-                        text=question_text[:300] + "..." if len(question_text) > 300 else question_text,
+                        number=composite_number,
+                        text=full_text[:300] + "..." if len(full_text) > 300 else full_text,
                         page=page,
                         bbox=bbox,
                         confidence=0.85,
-                        sub_part=sub_part
+                        sub_part=None
                     )
                     questions.append(question)
-                    seen_numbers.add(number)
-            
-            i += 1
+                    seen_numbers.add(composite_number)
+                    i = j
+            else:
+                i += 1
         
         return questions
     
     def extract_questions_from_pdf(self, pdf_bytes: bytes) -> List[Question]:
         """Extract questions from PDF using text extraction only (faster, no OCR)."""
-        # Use only text extraction for speed
-        text = self.extract_text_from_pdf(pdf_bytes)
-        questions = self.extract_questions_from_text(text)
+        # Extract text page by page to track page numbers
+        pdf_file = io.BytesIO(pdf_bytes)
+        reader = pypdf.PdfReader(pdf_file)
         
-        return questions
+        all_questions = []
+        seen_numbers = set()  # Track seen numbers across all pages
+        
+        for page_num, page in enumerate(reader.pages):
+            text = page.extract_text()
+            page_questions = self.extract_questions_from_text(text, page_num + 1, seen_numbers)
+            all_questions.extend(page_questions)
+        
+        pdf_file.close()
+        del pdf_file
+        del reader
+        gc.collect()
+        
+        return all_questions

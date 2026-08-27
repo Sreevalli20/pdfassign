@@ -22,10 +22,36 @@ MAX_TOTAL_SIZE = 25 * 1024 * 1024  # 25MB total
 # File-based storage for assessments (works in production)
 import json
 import tempfile
+import time
 
 # Use persistent directory for Render
 STORAGE_DIR = os.path.join(os.getcwd(), "temp", "storage")
 os.makedirs(STORAGE_DIR, exist_ok=True)
+
+# Cleanup old files to prevent disk space issues
+def cleanup_old_files(max_age_hours=24):
+    """Remove files older than max_age_hours."""
+    try:
+        current_time = time.time()
+        max_age_seconds = max_age_hours * 3600
+        
+        # Clean up old assessment data
+        for filename in os.listdir(STORAGE_DIR):
+            filepath = os.path.join(STORAGE_DIR, filename)
+            if os.path.getmtime(filepath) < current_time - max_age_seconds:
+                os.remove(filepath)
+                print(f"Cleaned up old file: {filename}")
+        
+        # Clean up old uploaded files
+        upload_dir = "temp/uploads"
+        if os.path.exists(upload_dir):
+            for filename in os.listdir(upload_dir):
+                filepath = os.path.join(upload_dir, filename)
+                if os.path.getmtime(filepath) < current_time - max_age_seconds:
+                    os.remove(filepath)
+                    print(f"Cleaned up old upload: {filename}")
+    except Exception as e:
+        print(f"Error during cleanup: {e}")
 
 def save_assessment(assessment_id: str, data: dict):
     """Save assessment data to file."""
@@ -63,6 +89,9 @@ async def process_assessment(
     demo_mode: bool = Form(False)
 ):
     """Process question paper and answer sheet to extract and map answers."""
+    
+    # Cleanup old files periodically
+    cleanup_old_files()
     
     assessment_id = str(uuid.uuid4())
     
@@ -178,8 +207,9 @@ async def process_assessment_sync(
         questions = pdf_processor.extract_questions_from_pdf(qp_bytes)
         print(f"Extracted {len(questions)} questions")
         
-        # Free question paper memory
+        # Free question paper memory immediately
         del qp_bytes
+        qp_bytes = None
         gc.collect()
         
         # Read answer sheet
@@ -198,16 +228,25 @@ async def process_assessment_sync(
             as_reader = pypdf.PdfReader(as_pdf_file)
             total_pages = len(as_reader.pages)
             as_pdf_file.close()
+            del as_pdf_file
+            del as_reader
         except:
             total_pages = len(answers) if answers else 0
         
-        # Free answer sheet memory
+        # Free answer sheet memory immediately
         del as_bytes
+        as_bytes = None
         gc.collect()
         
         # Map answers to questions
         answer_mapper = AnswerMapper()
         questions_with_status, unmatched_answers = answer_mapper.map_answers_to_questions(questions, answers)
+        
+        # Free processors
+        del pdf_processor
+        del answer_processor
+        del answer_mapper
+        gc.collect()
         
         result = AssessmentResult(
             id=assessment_id,
