@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException, BackgroundTasks
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from fastapi.responses import FileResponse
 from app.schemas.assessment import AssessmentResult, ProcessingStatus
 from app.services.pdf_processor import PDFProcessor
@@ -49,7 +49,6 @@ def load_file_paths(assessment_id: str) -> dict:
 
 @router.post("/process", response_model=AssessmentResult)
 async def process_assessment(
-    background_tasks: BackgroundTasks,
     question_paper: UploadFile = File(...),
     answer_sheet: UploadFile = File(...),
     demo_mode: bool = Form(False)
@@ -95,103 +94,37 @@ async def process_assessment(
         "answer_sheet": as_path
     })
     
-    # Initialize status
-    save_assessment(assessment_id, {
-        "status": ProcessingStatus.UPLOADING.value,
-        "questions": [],
-        "unmatched_answers": [],
-        "total_pages": 0
-    })
+    # Process synchronously (works better with Render's ephemeral environment)
+    result = await process_assessment_sync(assessment_id, qp_path, as_path)
     
-    # Process in background
-    background_tasks.add_task(
-        process_assessment_background,
-        assessment_id,
-        qp_path,
-        as_path
-    )
-    
-    # Return initial result (will be updated by background task)
-    initial_result = AssessmentResult(
-        id=assessment_id,
-        status=ProcessingStatus.UPLOADING,
-        questions=[],
-        unmatched_answers=[],
-        total_pages=0
-    )
-    
-    return initial_result
+    return result
 
 
-async def process_assessment_background(
+async def process_assessment_sync(
     assessment_id: str,
     question_paper_path: str,
     answer_sheet_path: str
-):
-    """Background task for real AI processing."""
+) -> AssessmentResult:
+    """Synchronous processing for Render's ephemeral environment."""
     try:
-        save_assessment(assessment_id, {
-            "status": ProcessingStatus.READING_QUESTION_PAPER.value,
-            "questions": [],
-            "unmatched_answers": [],
-            "total_pages": 0
-        })
-        
         # Read files
         with open(question_paper_path, "rb") as f:
             qp_bytes = f.read()
         with open(answer_sheet_path, "rb") as f:
             as_bytes = f.read()
         
-        save_assessment(assessment_id, {
-            "status": ProcessingStatus.EXTRACTING_QUESTIONS.value,
-            "questions": [],
-            "unmatched_answers": [],
-            "total_pages": 0
-        })
-        
         # Extract questions
         pdf_processor = PDFProcessor()
         questions = pdf_processor.extract_questions_from_pdf(qp_bytes)
-        
-        save_assessment(assessment_id, {
-            "status": ProcessingStatus.READING_ANSWERS.value,
-            "questions": [],
-            "unmatched_answers": [],
-            "total_pages": 0
-        })
         
         # Extract answers
         answer_processor = AnswerProcessor()
         answers = answer_processor.extract_answers(as_bytes)
         
-        save_assessment(assessment_id, {
-            "status": ProcessingStatus.DETECTING_REGIONS.value,
-            "questions": [],
-            "unmatched_answers": [],
-            "total_pages": 0
-        })
-        await asyncio.sleep(0.1)  # Regions already detected in answer extraction
-        
-        save_assessment(assessment_id, {
-            "status": ProcessingStatus.MAPPING_ANSWERS.value,
-            "questions": [],
-            "unmatched_answers": [],
-            "total_pages": 0
-        })
-        
         # Map answers to questions
         answer_mapper = AnswerMapper()
         questions_with_status, unmatched_answers = answer_mapper.map_answers_to_questions(questions, answers)
         
-        save_assessment(assessment_id, {
-            "status": ProcessingStatus.PREPARING_ASSESSMENT.value,
-            "questions": [],
-            "unmatched_answers": [],
-            "total_pages": 0
-        })
-        
-        # Create result
         # Get actual page count from answer sheet
         try:
             import pypdf
@@ -210,7 +143,7 @@ async def process_assessment_background(
             processing_time_seconds=2.5
         )
         
-        # Convert to dict for JSON serialization
+        # Convert to dict for JSON serialization and save
         result_dict = {
             "id": result.id,
             "status": result.status.value,
@@ -221,14 +154,29 @@ async def process_assessment_background(
         }
         save_assessment(assessment_id, result_dict)
         
+        return result
+        
     except Exception as e:
-        save_assessment(assessment_id, {
-            "status": ProcessingStatus.FAILED.value,
+        error_result = AssessmentResult(
+            id=assessment_id,
+            status=ProcessingStatus.FAILED,
+            questions=[],
+            unmatched_answers=[],
+            total_pages=0,
+            error=str(e)
+        )
+        
+        error_dict = {
+            "id": error_result.id,
+            "status": error_result.status.value,
             "questions": [],
             "unmatched_answers": [],
             "total_pages": 0,
             "error": str(e)
-        })
+        }
+        save_assessment(assessment_id, error_dict)
+        
+        return error_result
 
 
 @router.get("/{assessment_id}", response_model=AssessmentResult)
