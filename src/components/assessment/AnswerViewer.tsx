@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, FileText, Loader2, Maximize2, Minimize2 } from "lucide-react";
 import { Answer, BoundingBox } from "@/types/assessment";
 import { Document, Page, pdfjs } from "react-pdf";
+import { getAnswerSheetPdf } from "@/lib/api";
 
 // Configure PDF.js worker for production
 if (typeof window !== 'undefined') {
@@ -14,17 +15,38 @@ if (typeof window !== 'undefined') {
 interface AnswerViewerProps {
   answer: Answer | null;
   totalPages: number;
-  pdfFile?: File | null;
+  assessmentId?: string;
 }
 
-export function AnswerViewer({ answer, totalPages, pdfFile }: AnswerViewerProps) {
+export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [zoom, setZoom] = useState(1);
   const [numPages, setNumPages] = useState(0);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfError, setPdfError] = useState<string | null>(null);
   const [pageWidth, setPageWidth] = useState(600);
+  const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Fetch PDF from backend when assessmentId changes
+  useEffect(() => {
+    const fetchPdf = async () => {
+      if (assessmentId) {
+        setPdfLoading(true);
+        setPdfError(null);
+        try {
+          const blob = await getAnswerSheetPdf(assessmentId);
+          setPdfBlob(blob);
+        } catch (error) {
+          console.error('Failed to fetch PDF:', error);
+          setPdfError('Failed to load answer sheet PDF from server.');
+        } finally {
+          setPdfLoading(false);
+        }
+      }
+    };
+    fetchPdf();
+  }, [assessmentId]);
 
   // Auto-navigate to the first page of the answer when answer changes
   useEffect(() => {
@@ -119,7 +141,7 @@ export function AnswerViewer({ answer, totalPages, pdfFile }: AnswerViewerProps)
 
       <div className="flex-1 overflow-auto p-6 bg-gray-100" ref={containerRef}>
         <div className="flex items-center justify-center min-h-full">
-          {pdfFile ? (
+          {pdfBlob ? (
             <div
               className="relative bg-white shadow-lg rounded-lg overflow-hidden"
               style={{
@@ -137,7 +159,7 @@ export function AnswerViewer({ answer, totalPages, pdfFile }: AnswerViewerProps)
               )}
               
               <Document
-                file={pdfFile}
+                file={pdfBlob}
                 onLoadSuccess={onDocumentLoadSuccess}
                 onLoadError={onDocumentLoadError}
                 loading={<Loader2 className="w-8 h-8 animate-spin text-blue-500" />}
@@ -163,6 +185,23 @@ export function AnswerViewer({ answer, totalPages, pdfFile }: AnswerViewerProps)
                 />
               )}
             </div>
+          ) : pdfLoading ? (
+            <div className="flex items-center justify-center p-12">
+              <div className="text-center">
+                <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-3" />
+                <p className="text-sm text-gray-600">Loading answer sheet...</p>
+              </div>
+            </div>
+          ) : pdfError ? (
+            <div className="flex items-center justify-center p-12">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-3 mx-auto">
+                  <FileText className="w-8 h-8 text-red-600" />
+                </div>
+                <p className="text-red-700 font-medium mb-1">PDF Load Error</p>
+                <p className="text-red-600 text-sm">{pdfError}</p>
+              </div>
+            </div>
           ) : (
             <div
               className="relative bg-white shadow-lg rounded-lg flex flex-col items-center justify-center p-12"
@@ -175,7 +214,7 @@ export function AnswerViewer({ answer, totalPages, pdfFile }: AnswerViewerProps)
                 <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                   <FileText className="w-10 h-10 text-gray-400" />
                 </div>
-                <p className="text-gray-400 mb-2 font-medium text-lg">Page {currentPage}</p>
+                <p className="text-gray-400 mb-2 font-medium text-lg">No answer sheet loaded</p>
                 {answer ? (
                   <div className="text-center space-y-3">
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">

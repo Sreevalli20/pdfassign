@@ -11,6 +11,9 @@ export async function processAssessment(
   formData.append("answer_sheet", answerSheet);
   formData.append("demo_mode", "false");
 
+  // Store the answer sheet file for later PDF retrieval
+  const answerSheetFile = answerSheet;
+
   const url = `${API_URL}/api/assessment/process`;
   console.log('[API] POST request to:', url);
   console.log('[API] FormData fields:', Array.from(formData.keys()));
@@ -54,6 +57,10 @@ export async function processAssessment(
 
   const result = await response.json();
   console.log('[API] Response result:', result);
+  
+  // Store the assessment ID for PDF retrieval
+  (result as any)._assessmentId = result.id;
+  (result as any)._answerSheetFile = answerSheetFile;
   
   // Poll for completion if status is not completed
   if (result.status !== "completed" && result.status !== "failed") {
@@ -102,7 +109,20 @@ export async function getAssessment(assessmentId: string): Promise<AssessmentRes
     throw new Error("Failed to fetch assessment");
   }
 
-  return response.json();
+  const result = await response.json();
+  // Store the assessment ID for PDF retrieval
+  (result as any)._assessmentId = assessmentId;
+  return result;
+}
+
+export async function getAnswerSheetPdf(assessmentId: string): Promise<Blob> {
+  const response = await fetch(`${API_URL}/api/assessment/${assessmentId}/answer-sheet`);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch answer sheet PDF");
+  }
+
+  return response.blob();
 }
 
 export async function getAssessmentStatus(assessmentId: string): Promise<{ assessment_id: string; status: string }> {

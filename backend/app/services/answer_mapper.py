@@ -26,10 +26,11 @@ class AnswerMapper:
             q_label = self.normalize_label(question.number)
             if q_label in answer_map:
                 answer = answer_map[q_label]
+                # High confidence for exact label match
                 mappings[question.id] = AnswerMapping(
                     question_id=question.id,
                     answer_id=answer.id,
-                    confidence=0.95,
+                    confidence=0.92,
                     mapping_method=MappingMethod.EXPLICIT_LABEL
                 )
         
@@ -41,7 +42,7 @@ class AnswerMapper:
         return self.map_by_explicit_label(questions, answers)
     
     def map_by_structural(self, questions: List[Question], answers: List[Answer]) -> Dict[str, AnswerMapping]:
-        """Map answers based on structural layout (position on page)."""
+        """Map answers based on structural layout (position on page) with lower confidence."""
         mappings = {}
         
         # Sort by page and y-position
@@ -49,14 +50,15 @@ class AnswerMapper:
         sorted_answers = sorted(answers, key=lambda a: (a.pages[0] if a.pages else 0, 
                                                        a.regions[0].bbox.y if a.regions else 0))
         
-        # Map by position
+        # Map by position with low confidence
         for i, question in enumerate(sorted_questions):
             if i < len(sorted_answers):
                 answer = sorted_answers[i]
+                # Low confidence for structural mapping - mark as needs review
                 mappings[question.id] = AnswerMapping(
                     question_id=question.id,
                     answer_id=answer.id,
-                    confidence=0.60,
+                    confidence=0.45,  # Lower confidence for structural mapping
                     mapping_method=MappingMethod.STRUCTURAL
                 )
         
@@ -68,7 +70,7 @@ class AnswerMapper:
         answers: List[Answer],
         mappings: Dict[str, AnswerMapping]
     ) -> List[QuestionWithStatus]:
-        """Create question status map with answers."""
+        """Create question status map with answers and confidence-based status."""
         question_with_status = []
         mapped_answer_ids = {m.answer_id for m in mappings.values() if m.answer_id}
         
@@ -77,7 +79,11 @@ class AnswerMapper:
             
             if mapping and mapping.answer_id:
                 answer = next((a for a in answers if a.id == mapping.answer_id), None)
-                status = QuestionStatus.ANSWERED
+                # Use confidence to determine status
+                if mapping.confidence >= 0.70:
+                    status = QuestionStatus.ANSWERED
+                else:
+                    status = QuestionStatus.NEEDS_REVIEW  # Low confidence mappings need review
             else:
                 answer = None
                 status = QuestionStatus.UNANSWERED

@@ -354,7 +354,7 @@ export default function Home() {
                 <AnswerViewer
                   answer={selectedQuestion?.answer || null}
                   totalPages={assessment.total_pages}
-                  pdfFile={answerSheet?.file}
+                  assessmentId={(assessment as any)._assessmentId || assessment.id}
                 />
               </div>
 

@@ -40,28 +40,31 @@ class AnswerProcessor:
         return '\n'.join(text_lines), boxes
     
     def extract_answer_labels(self, ocr_text: str) -> List[Tuple[str, int, int, int, int]]:
-        """Extract answer labels (e.g., '1', '2', '3(a)') from OCR text."""
+        """Extract answer labels (e.g., '1', '2', '3(a)') from OCR text with filtering."""
         labels = []
         
-        # Pattern for answer labels - match numbers that might be followed by parentheses
-        label_pattern = r'(\d+(?:\([a-z]\))?)\s*[\.:]?\s*$'
+        # Pattern for answer labels - match numbers at start of line
+        label_pattern = r'^(\d+(?:\([a-z]\))?)\s*[\.:]?\s*$'
         
         lines = ocr_text.split('\n')
         for line in lines:
-            match = re.match(label_pattern, line.strip())
+            line = line.strip()
+            match = re.match(label_pattern, line)
             if match:
-                labels.append((match.group(1), 0, 0, 0, 0))  # Placeholder coordinates
-        
-        # If no labels found, try a more lenient pattern
-        if not labels:
-            label_pattern = r'(\d+(?:\([a-z]\))?)'
-            for line in lines:
-                match = re.search(label_pattern, line.strip())
-                if match:
-                    label = match.group(1)
-                    # Only add if it's likely a question number (short, at start of line)
-                    if len(line.strip()) < 20 and line.strip().startswith(label):
-                        labels.append((label, 0, 0, 0, 0))
+                label = match.group(1)
+                
+                # Filter out obviously invalid numbers
+                # Skip very large numbers (likely OCR noise like 770)
+                try:
+                    num = int(label.split('(')[0])
+                    if num > 100:  # Reasonable upper bound for question numbers
+                        continue
+                except:
+                    pass
+                
+                # Only add if line is short (likely just a label)
+                if len(line) < 15:
+                    labels.append((label, 0, 0, 0, 0))
         
         return labels
     
@@ -92,7 +95,7 @@ class AnswerProcessor:
         return regions
     
     def extract_answers(self, pdf_bytes: bytes) -> List[Answer]:
-        """Extract answers from answer sheet PDF."""
+        """Extract answers from answer sheet PDF with improved filtering."""
         # First try to get text directly from PDF
         try:
             pdf_file = io.BytesIO(pdf_bytes)
@@ -149,6 +152,14 @@ class AnswerProcessor:
                 regions = self.detect_answer_regions(image, labels)
                 
                 for i, (label, _, _, _, _) in enumerate(labels):
+                    # Filter out invalid labels from OCR
+                    try:
+                        num = int(label.split('(')[0])
+                        if num > 100:  # Skip OCR noise
+                            continue
+                    except:
+                        pass
+                    
                     answer_id += 1
                     answer = Answer(
                         id=f"a_{answer_id}",

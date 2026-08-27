@@ -36,42 +36,76 @@ class PDFProcessor:
         return pytesseract.image_to_string(image, config=self.ocr_config)
     
     def extract_questions_from_text(self, text: str, page: int = 1) -> List[Question]:
-        """Extract questions from text using pattern matching."""
+        """Extract questions from text using improved pattern matching."""
         questions = []
         
-        # Pattern for question numbers: 1, 2, 3(a), 3(b), 11(a), etc.
-        # This pattern matches numbers at the start of lines followed by a period and space
-        question_pattern = r'^(\d+(?:\([a-z]\))?)\.\s+(.+?)(?=^\d+(?:\([a-z]\))?\.|\Z)'
+        # Split text into lines for better analysis
+        lines = text.split('\n')
         
-        matches = re.finditer(question_pattern, text, re.MULTILINE | re.DOTALL)
+        # Track current question number to detect duplicates
+        seen_numbers = set()
         
-        for match in matches:
-            number = match.group(1)
-            question_text = match.group(2).strip()
+        i = 0
+        while i < len(lines):
+            line = lines[i].strip()
             
-            # Extract sub-part if present
-            sub_part = None
-            if '(' in number and ')' in number:
-                sub_part = number[number.index('(')+1:number.index(')')]
+            # Skip empty lines
+            if not line:
+                i += 1
+                continue
             
-            # Generate question ID
-            q_id = f"q_{number.replace('(', '_').replace(')', '_').replace('.', '_')}"
+            # Pattern for question numbers at start of line
+            # Must be: number followed by period/space, then text
+            # Avoid matching task lists, page numbers, or other numbered items
+            question_match = re.match(r'^(\d+(?:\([a-z]\))?)\.[\s]+(.+)', line)
             
-            # Create bounding box (placeholder - would need layout analysis)
-            # Ensure y coordinate stays within 0-1 range
-            y_pos = min(0.1 + len(questions) * 0.03, 0.9)
-            bbox = BoundingBox(x=0.1, y=y_pos, width=0.8, height=0.08)
+            if question_match:
+                number = question_match.group(1)
+                question_text = question_match.group(2).strip()
+                
+                # Skip if this looks like a task/instruction rather than a question
+                # Task indicators: "Create", "Write", "Generate", "Implement", etc.
+                task_indicators = ['create', 'write', 'generate', 'implement', 'make', 'build', 'develop']
+                if any(question_text.lower().startswith(indicator) for indicator in task_indicators):
+                    i += 1
+                    continue
+                
+                # Skip if we've already seen this number (avoid duplicates)
+                if number in seen_numbers:
+                    i += 1
+                    continue
+                
+                # Only accept if it looks like a question (has question words or reasonable length)
+                question_words = ['what', 'why', 'how', 'when', 'where', 'who', 'which', 'explain', 'describe', 'define', 'compare', 'discuss', 'analyze']
+                has_question_word = any(word in question_text.lower() for word in question_words)
+                is_reasonable_length = len(question_text) > 10 and len(question_text) < 500
+                
+                if has_question_word or is_reasonable_length:
+                    # Extract sub-part if present
+                    sub_part = None
+                    if '(' in number and ')' in number:
+                        sub_part = number[number.index('(')+1:number.index(')')]
+                    
+                    # Generate question ID
+                    q_id = f"q_{number.replace('(', '_').replace(')', '_').replace('.', '_')}"
+                    
+                    # Create bounding box (placeholder)
+                    y_pos = min(0.1 + len(questions) * 0.03, 0.9)
+                    bbox = BoundingBox(x=0.1, y=y_pos, width=0.8, height=0.08)
+                    
+                    question = Question(
+                        id=q_id,
+                        number=number,
+                        text=question_text[:300] + "..." if len(question_text) > 300 else question_text,
+                        page=page,
+                        bbox=bbox,
+                        confidence=0.85,
+                        sub_part=sub_part
+                    )
+                    questions.append(question)
+                    seen_numbers.add(number)
             
-            question = Question(
-                id=q_id,
-                number=number,
-                text=question_text[:300] + "..." if len(question_text) > 300 else question_text,
-                page=page,
-                bbox=bbox,
-                confidence=0.85,
-                sub_part=sub_part
-            )
-            questions.append(question)
+            i += 1
         
         return questions
     

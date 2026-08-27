@@ -15,6 +15,7 @@ router = APIRouter()
 # In-memory storage for assessments (as per requirements)
 assessments: Dict[str, AssessmentResult] = {}
 processing_status: Dict[str, ProcessingStatus] = {}
+uploaded_files: Dict[str, Dict[str, str]] = {}  # Store file paths by assessment_id
 
 
 @router.post("/process", response_model=AssessmentResult)
@@ -58,6 +59,12 @@ async def process_assessment(
     
     with open(as_path, "wb") as f:
         f.write(await answer_sheet.read())
+    
+    # Store file paths for later retrieval
+    uploaded_files[assessment_id] = {
+        "question_paper": qp_path,
+        "answer_sheet": as_path
+    }
     
     # Initialize status
     processing_status[assessment_id] = ProcessingStatus.UPLOADING
@@ -175,13 +182,39 @@ async def get_assessment_status(assessment_id: str):
     return {"assessment_id": assessment_id, "status": processing_status[assessment_id]}
 
 
-@router.get("/{assessment_id}/pages/{page_number}")
-async def get_answer_sheet_page(assessment_id: str, page_number: int):
-    """Get a specific page image from the answer sheet."""
-    # For demo mode, return a placeholder
-    # In production, this would return the actual page image
-    return {
-        "assessment_id": assessment_id,
-        "page": page_number,
-        "image_url": f"/api/assessment/{assessment_id}/pages/{page_number}/image"
-    }
+@router.get("/{assessment_id}/answer-sheet")
+async def get_answer_sheet_pdf(assessment_id: str):
+    """Get the uploaded answer sheet PDF for an assessment."""
+    if assessment_id not in uploaded_files:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+    
+    file_info = uploaded_files[assessment_id]
+    answer_sheet_path = file_info.get("answer_sheet")
+    
+    if not answer_sheet_path or not os.path.exists(answer_sheet_path):
+        raise HTTPException(status_code=404, detail="Answer sheet file not found")
+    
+    return FileResponse(
+        answer_sheet_path,
+        media_type="application/pdf",
+        filename=f"assessment_{assessment_id}_answer_sheet.pdf"
+    )
+
+
+@router.get("/{assessment_id}/question-paper")
+async def get_question_paper_pdf(assessment_id: str):
+    """Get the uploaded question paper PDF for an assessment."""
+    if assessment_id not in uploaded_files:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+    
+    file_info = uploaded_files[assessment_id]
+    question_paper_path = file_info.get("question_paper")
+    
+    if not question_paper_path or not os.path.exists(question_paper_path):
+        raise HTTPException(status_code=404, detail="Question paper file not found")
+    
+    return FileResponse(
+        question_paper_path,
+        media_type="application/pdf",
+        filename=f"assessment_{assessment_id}_question_paper.pdf"
+    )
