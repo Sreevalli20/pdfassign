@@ -23,7 +23,9 @@ MAX_TOTAL_SIZE = 25 * 1024 * 1024  # 25MB total
 import json
 import tempfile
 
-STORAGE_DIR = tempfile.gettempdir()
+# Use persistent directory for Render
+STORAGE_DIR = os.path.join(os.getcwd(), "temp", "storage")
+os.makedirs(STORAGE_DIR, exist_ok=True)
 
 def save_assessment(assessment_id: str, data: dict):
     """Save assessment data to file."""
