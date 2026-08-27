@@ -15,9 +15,9 @@ import pypdf
 router = APIRouter()
 
 # Memory limits for Render Free-tier (512 MB RAM)
-MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB per file
-MAX_PAGES = 20  # Maximum pages per PDF
-MAX_TOTAL_SIZE = 20 * 1024 * 1024  # 20MB total
+MAX_FILE_SIZE = 15 * 1024 * 1024  # 15MB per file
+MAX_PAGES = 30  # Maximum pages per PDF
+MAX_TOTAL_SIZE = 25 * 1024 * 1024  # 25MB total
 
 # File-based storage for assessments (works in production)
 import json

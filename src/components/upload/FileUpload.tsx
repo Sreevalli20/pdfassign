@@ -93,8 +93,8 @@ export function FileUpload({
       return;
     }
     
-    // Validate file size (max 10MB for backend compatibility)
-    const maxSize = 10 * 1024 * 1024;
+    // Validate file size (max 15MB for backend compatibility)
+    const maxSize = 15 * 1024 * 1024;
     if (selectedFile.size > maxSize) {
       alert(`File size must be less than ${maxSize / (1024 * 1024)}MB.`);
       return;
