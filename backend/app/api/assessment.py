@@ -12,10 +12,39 @@ import asyncio
 
 router = APIRouter()
 
-# In-memory storage for assessments (as per requirements)
-assessments: Dict[str, AssessmentResult] = {}
-processing_status: Dict[str, ProcessingStatus] = {}
-uploaded_files: Dict[str, Dict[str, str]] = {}  # Store file paths by assessment_id
+# File-based storage for assessments (works in production)
+import json
+import tempfile
+
+STORAGE_DIR = tempfile.gettempdir()
+
+def save_assessment(assessment_id: str, data: dict):
+    """Save assessment data to file."""
+    filepath = os.path.join(STORAGE_DIR, f"assessment_{assessment_id}.json")
+    with open(filepath, 'w') as f:
+        json.dump(data, f)
+
+def load_assessment(assessment_id: str) -> dict:
+    """Load assessment data from file."""
+    filepath = os.path.join(STORAGE_DIR, f"assessment_{assessment_id}.json")
+    if os.path.exists(filepath):
+        with open(filepath, 'r') as f:
+            return json.load(f)
+    return None
+
+def save_file_paths(assessment_id: str, paths: dict):
+    """Save file paths to file."""
+    filepath = os.path.join(STORAGE_DIR, f"files_{assessment_id}.json")
+    with open(filepath, 'w') as f:
+        json.dump(paths, f)
+
+def load_file_paths(assessment_id: str) -> dict:
+    """Load file paths from file."""
+    filepath = os.path.join(STORAGE_DIR, f"files_{assessment_id}.json")
+    if os.path.exists(filepath):
+        with open(filepath, 'r') as f:
+            return json.load(f)
+    return None
 
 
 @router.post("/process", response_model=AssessmentResult)
@@ -61,13 +90,18 @@ async def process_assessment(
         f.write(await answer_sheet.read())
     
     # Store file paths for later retrieval
-    uploaded_files[assessment_id] = {
+    save_file_paths(assessment_id, {
         "question_paper": qp_path,
         "answer_sheet": as_path
-    }
+    })
     
     # Initialize status
-    processing_status[assessment_id] = ProcessingStatus.UPLOADING
+    save_assessment(assessment_id, {
+        "status": ProcessingStatus.UPLOADING.value,
+        "questions": [],
+        "unmatched_answers": [],
+        "total_pages": 0
+    })
     
     # Process in background
     background_tasks.add_task(
@@ -85,7 +119,6 @@ async def process_assessment(
         unmatched_answers=[],
         total_pages=0
     )
-    assessments[assessment_id] = initial_result
     
     return initial_result
 
@@ -97,7 +130,12 @@ async def process_assessment_background(
 ):
     """Background task for real AI processing."""
     try:
-        processing_status[assessment_id] = ProcessingStatus.READING_QUESTION_PAPER
+        save_assessment(assessment_id, {
+            "status": ProcessingStatus.READING_QUESTION_PAPER.value,
+            "questions": [],
+            "unmatched_answers": [],
+            "total_pages": 0
+        })
         
         # Read files
         with open(question_paper_path, "rb") as f:
@@ -105,28 +143,53 @@ async def process_assessment_background(
         with open(answer_sheet_path, "rb") as f:
             as_bytes = f.read()
         
-        processing_status[assessment_id] = ProcessingStatus.EXTRACTING_QUESTIONS
+        save_assessment(assessment_id, {
+            "status": ProcessingStatus.EXTRACTING_QUESTIONS.value,
+            "questions": [],
+            "unmatched_answers": [],
+            "total_pages": 0
+        })
         
         # Extract questions
         pdf_processor = PDFProcessor()
         questions = pdf_processor.extract_questions_from_pdf(qp_bytes)
         
-        processing_status[assessment_id] = ProcessingStatus.READING_ANSWERS
+        save_assessment(assessment_id, {
+            "status": ProcessingStatus.READING_ANSWERS.value,
+            "questions": [],
+            "unmatched_answers": [],
+            "total_pages": 0
+        })
         
         # Extract answers
         answer_processor = AnswerProcessor()
         answers = answer_processor.extract_answers(as_bytes)
         
-        processing_status[assessment_id] = ProcessingStatus.DETECTING_REGIONS
+        save_assessment(assessment_id, {
+            "status": ProcessingStatus.DETECTING_REGIONS.value,
+            "questions": [],
+            "unmatched_answers": [],
+            "total_pages": 0
+        })
         await asyncio.sleep(0.1)  # Regions already detected in answer extraction
         
-        processing_status[assessment_id] = ProcessingStatus.MAPPING_ANSWERS
+        save_assessment(assessment_id, {
+            "status": ProcessingStatus.MAPPING_ANSWERS.value,
+            "questions": [],
+            "unmatched_answers": [],
+            "total_pages": 0
+        })
         
         # Map answers to questions
         answer_mapper = AnswerMapper()
         questions_with_status, unmatched_answers = answer_mapper.map_answers_to_questions(questions, answers)
         
-        processing_status[assessment_id] = ProcessingStatus.PREPARING_ASSESSMENT
+        save_assessment(assessment_id, {
+            "status": ProcessingStatus.PREPARING_ASSESSMENT.value,
+            "questions": [],
+            "unmatched_answers": [],
+            "total_pages": 0
+        })
         
         # Create result
         # Get actual page count from answer sheet
@@ -147,48 +210,55 @@ async def process_assessment_background(
             processing_time_seconds=2.5
         )
         
-        assessments[assessment_id] = result
-        processing_status[assessment_id] = ProcessingStatus.COMPLETED
+        # Convert to dict for JSON serialization
+        result_dict = {
+            "id": result.id,
+            "status": result.status.value,
+            "questions": [q.model_dump() for q in result.questions],
+            "unmatched_answers": [a.model_dump() for a in result.unmatched_answers],
+            "total_pages": result.total_pages,
+            "processing_time_seconds": result.processing_time_seconds
+        }
+        save_assessment(assessment_id, result_dict)
         
     except Exception as e:
-        processing_status[assessment_id] = ProcessingStatus.FAILED
-        # Create error result
-        result = AssessmentResult(
-            id=assessment_id,
-            status=ProcessingStatus.FAILED,
-            questions=[],
-            unmatched_answers=[],
-            total_pages=0,
-            error=str(e)
-        )
-        assessments[assessment_id] = result
+        save_assessment(assessment_id, {
+            "status": ProcessingStatus.FAILED.value,
+            "questions": [],
+            "unmatched_answers": [],
+            "total_pages": 0,
+            "error": str(e)
+        })
 
 
 @router.get("/{assessment_id}", response_model=AssessmentResult)
 async def get_assessment(assessment_id: str):
     """Get assessment results by ID."""
-    if assessment_id not in assessments:
+    data = load_assessment(assessment_id)
+    if not data:
         raise HTTPException(status_code=404, detail="Assessment not found")
     
-    return assessments[assessment_id]
+    # Convert dict back to AssessmentResult
+    return AssessmentResult(**data)
 
 
 @router.get("/{assessment_id}/status")
 async def get_assessment_status(assessment_id: str):
     """Get processing status for an assessment."""
-    if assessment_id not in processing_status:
+    data = load_assessment(assessment_id)
+    if not data:
         raise HTTPException(status_code=404, detail="Assessment not found")
     
-    return {"assessment_id": assessment_id, "status": processing_status[assessment_id]}
+    return {"assessment_id": assessment_id, "status": data.get("status")}
 
 
 @router.get("/{assessment_id}/answer-sheet")
 async def get_answer_sheet_pdf(assessment_id: str):
     """Get the uploaded answer sheet PDF for an assessment."""
-    if assessment_id not in uploaded_files:
+    file_info = load_file_paths(assessment_id)
+    if not file_info:
         raise HTTPException(status_code=404, detail="Assessment not found")
     
-    file_info = uploaded_files[assessment_id]
     answer_sheet_path = file_info.get("answer_sheet")
     
     if not answer_sheet_path or not os.path.exists(answer_sheet_path):
@@ -204,10 +274,10 @@ async def get_answer_sheet_pdf(assessment_id: str):
 @router.get("/{assessment_id}/question-paper")
 async def get_question_paper_pdf(assessment_id: str):
     """Get the uploaded question paper PDF for an assessment."""
-    if assessment_id not in uploaded_files:
+    file_info = load_file_paths(assessment_id)
+    if not file_info:
         raise HTTPException(status_code=404, detail="Assessment not found")
     
-    file_info = uploaded_files[assessment_id]
     question_paper_path = file_info.get("question_paper")
     
     if not question_paper_path or not os.path.exists(question_paper_path):
