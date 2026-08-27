@@ -7,8 +7,8 @@ class Settings(BaseSettings):
     CORS_ORIGINS: List[str] = [
         "http://localhost:3000",
         "http://localhost:3001",
-        "https://frontend-obg6.vercel.app",
-        "https://pdfassign.vercel.app"
+        "https://assign-f5p4.vercel.app",
+        "https://pdfassign.onrender.com"
     ]
     
     # AI Configuration

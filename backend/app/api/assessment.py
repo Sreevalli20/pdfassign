@@ -6,6 +6,7 @@ from app.services.answer_processor import AnswerProcessor
 from app.services.answer_mapper import AnswerMapper
 import uuid
 import os
+import io
 from typing import Dict
 import asyncio
 
@@ -121,12 +122,21 @@ async def process_assessment_background(
         processing_status[assessment_id] = ProcessingStatus.PREPARING_ASSESSMENT
         
         # Create result
+        # Get actual page count from answer sheet
+        try:
+            import pypdf
+            as_pdf_file = io.BytesIO(as_bytes)
+            as_reader = pypdf.PdfReader(as_pdf_file)
+            total_pages = len(as_reader.pages)
+        except:
+            total_pages = len(answers) if answers else 0
+        
         result = AssessmentResult(
             id=assessment_id,
             status=ProcessingStatus.COMPLETED,
             questions=questions_with_status,
             unmatched_answers=unmatched_answers,
-            total_pages=len(answers) if answers else 0,
+            total_pages=total_pages,
             processing_time_seconds=2.5
         )
         

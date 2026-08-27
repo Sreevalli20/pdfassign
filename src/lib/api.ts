@@ -1,6 +1,6 @@
 import { AssessmentResult } from "@/types/assessment";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://pdfassign.onrender.com";
 
 // Mock demo data for frontend-only demo mode
 const mockDemoAssessment: AssessmentResult = {
