@@ -132,6 +132,9 @@ class AnswerProcessor:
                     answers.append(answer)
                 
                 return answers
+            else:
+                # No labels found, return empty list
+                return []
         except Exception as e:
             print(f"Warning: Could not extract text from PDF: {e}")
             return []
