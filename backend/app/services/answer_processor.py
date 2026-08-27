@@ -40,31 +40,38 @@ class AnswerProcessor:
         return '\n'.join(text_lines), boxes
     
     def extract_answer_labels(self, ocr_text: str) -> List[Tuple[str, int, int, int, int]]:
-        """Extract answer labels (e.g., '1', '2', '3(a)') from OCR text with filtering."""
+        """Extract answer labels (e.g., '1', '2', '3(a)') from OCR text with more lenient pattern."""
         labels = []
         
-        # Pattern for answer labels - match numbers at start of line
-        label_pattern = r'^(\d+(?:\([a-z]\))?)\s*[\.:]?\s*$'
+        # More lenient pattern - match numbers that could be question labels
+        # Accept: standalone numbers, numbers with parentheses, numbers followed by colon/period
+        label_patterns = [
+            r'^(\d+(?:\([a-z]\))?)\s*[\.:]?\s*$',  # Number at start of line
+            r'^(\d+)\s*$',  # Just a number
+            r'^(\d+)\s*[\.:]',  # Number followed by colon or period
+        ]
         
         lines = ocr_text.split('\n')
         for line in lines:
             line = line.strip()
-            match = re.match(label_pattern, line)
-            if match:
-                label = match.group(1)
-                
-                # Filter out obviously invalid numbers
-                # Skip very large numbers (likely OCR noise like 770)
-                try:
-                    num = int(label.split('(')[0])
-                    if num > 100:  # Reasonable upper bound for question numbers
-                        continue
-                except:
-                    pass
-                
-                # Only add if line is short (likely just a label)
-                if len(line) < 15:
-                    labels.append((label, 0, 0, 0, 0))
+            
+            for pattern in label_patterns:
+                match = re.match(pattern, line)
+                if match:
+                    label = match.group(1)
+                    
+                    # Filter out obviously invalid numbers
+                    try:
+                        num = int(label.split('(')[0])
+                        if num > 100:  # Reasonable upper bound
+                            continue
+                    except:
+                        pass
+                    
+                    # Only add if line is short (likely just a label)
+                    if len(line) < 20:
+                        labels.append((label, 0, 0, 0, 0))
+                    break
         
         return labels
     
