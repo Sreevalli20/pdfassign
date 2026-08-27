@@ -36,6 +36,10 @@ try:
         print(f"\n=== ASSESSMENT RESULT ===")
         print(f"Assessment ID: {result.get('id')}")
         print(f"Status: {result.get('status')}")
+        
+        if result.get('error'):
+            print(f"Error: {result.get('error')}")
+        
         print(f"Questions extracted: {len(result.get('questions', []))}")
         print(f"Total pages: {result.get('total_pages')}")
         print(f"Unmatched answers: {len(result.get('unmatched_answers', []))}")

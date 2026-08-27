@@ -116,10 +116,12 @@ async def process_assessment_sync(
         # Extract questions
         pdf_processor = PDFProcessor()
         questions = pdf_processor.extract_questions_from_pdf(qp_bytes)
+        print(f"Extracted {len(questions)} questions")
         
         # Extract answers
         answer_processor = AnswerProcessor()
         answers = answer_processor.extract_answers(as_bytes)
+        print(f"Extracted {len(answers)} answers")
         
         # Map answers to questions
         answer_mapper = AnswerMapper()
@@ -157,13 +159,16 @@ async def process_assessment_sync(
         return result
         
     except Exception as e:
+        import traceback
+        error_msg = f"{str(e)}\n\n{traceback.format_exc()}"
+        print(f"Error in processing: {error_msg}")
         error_result = AssessmentResult(
             id=assessment_id,
             status=ProcessingStatus.FAILED,
             questions=[],
             unmatched_answers=[],
             total_pages=0,
-            error=str(e)
+            error=error_msg
         )
         
         error_dict = {
@@ -172,7 +177,7 @@ async def process_assessment_sync(
             "questions": [],
             "unmatched_answers": [],
             "total_pages": 0,
-            "error": str(e)
+            "error": error_msg
         }
         save_assessment(assessment_id, error_dict)
         
