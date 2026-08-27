@@ -36,10 +36,13 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
         setPdfError(null);
         try {
           const blob = await getAnswerSheetPdf(assessmentId);
+          if (blob.size === 0) {
+            throw new Error('Received empty PDF file');
+          }
           setPdfBlob(blob);
         } catch (error) {
           console.error('Failed to fetch PDF:', error);
-          setPdfError('Failed to load answer sheet PDF from server.');
+          setPdfError('Failed to load answer sheet PDF from server. Please try again.');
         } finally {
           setPdfLoading(false);
         }
@@ -55,6 +58,13 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
     }
   }, [answer]);
 
+  // Reset to page 1 when PDF blob changes (new assessment)
+  useEffect(() => {
+    if (pdfBlob) {
+      setCurrentPage(1);
+    }
+  }, [pdfBlob]);
+
   // Calculate responsive page width
   useEffect(() => {
     if (containerRef.current) {
@@ -67,11 +77,12 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
     setNumPages(pages);
     setPdfLoading(false);
     setPdfError(null);
+    console.log(`PDF loaded successfully with ${pages} pages`);
   }
 
   function onDocumentLoadError(error: Error) {
     setPdfLoading(false);
-    setPdfError("Failed to load PDF. Please ensure the file is a valid PDF.");
+    setPdfError(`Failed to load PDF: ${error.message || 'Unknown error'}`);
     console.error("PDF load error:", error);
   }
 
@@ -80,7 +91,8 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
   };
 
   const handleNextPage = () => {
-    setCurrentPage((prev) => Math.min(totalPages || numPages, prev + 1));
+    const maxPage = totalPages || numPages;
+    setCurrentPage((prev) => Math.min(maxPage, prev + 1));
   };
 
   const handleZoomIn = () => {
@@ -175,7 +187,7 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
               {/* Highlight overlay */}
               {region && (
                 <div
-                  className="absolute border-4 border-yellow-500 bg-yellow-300 bg-opacity-40 pointer-events-none rounded shadow-lg"
+                  className="absolute border-4 border-yellow-500 bg-yellow-300 bg-opacity-40 pointer-events-none rounded shadow-lg z-10"
                   style={{
                     left: `${region.bbox.x * 100}%`,
                     top: `${region.bbox.y * 100}%`,
@@ -255,17 +267,6 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
             </div>
           )}
           
-          {pdfError && (
-            <div className="absolute inset-0 flex items-center justify-center bg-red-50 p-4 rounded-lg">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-3 mx-auto">
-                  <FileText className="w-8 h-8 text-red-600" />
-                </div>
-                <p className="text-red-700 font-medium mb-1">PDF Load Error</p>
-                <p className="text-red-600 text-sm">{pdfError}</p>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
