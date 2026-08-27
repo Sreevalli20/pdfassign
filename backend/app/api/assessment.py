@@ -1,6 +1,6 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, BackgroundTasks
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, BackgroundTasks
 from fastapi.responses import FileResponse
-from app.schemas.assessment import ProcessRequest, AssessmentResult, ProcessingStatus
+from app.schemas.assessment import AssessmentResult, ProcessingStatus
 from app.services.pdf_processor import PDFProcessor
 from app.services.answer_processor import AnswerProcessor
 from app.services.answer_mapper import AnswerMapper
@@ -19,9 +19,9 @@ processing_status: Dict[str, ProcessingStatus] = {}
 @router.post("/process", response_model=AssessmentResult)
 async def process_assessment(
     background_tasks: BackgroundTasks,
-    request: ProcessRequest,
     question_paper: UploadFile = File(...),
-    answer_sheet: UploadFile = File(...)
+    answer_sheet: UploadFile = File(...),
+    demo_mode: bool = Form(False)
 ):
     """Process question paper and answer sheet to extract and map answers."""
     
