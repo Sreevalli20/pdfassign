@@ -1,8 +1,8 @@
 services:
   # Backend Service (Docker)
   - type: web
-    name: vedaai-backend
+    name: pdfassign
     env: docker
     plan: free
-    dockerContext: .
-    dockerfilePath: ./Dockerfile
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
