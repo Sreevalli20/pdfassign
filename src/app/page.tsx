@@ -200,7 +200,7 @@ export default function Home() {
                   onClick={handleProcess}
                   disabled={!questionPaper || !answerSheet || isProcessing}
                   size="lg"
-                  className="bg-[#F97316] text-white border-[#F97316] hover:bg-[#EA580C] hover:border-[#EA580C] disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400 disabled:border-gray-400 disabled:text-white px-16 py-8 text-xl font-extrabold shadow-2xl hover:shadow-2xl rounded-2xl transition-all border-4 border-orange-700 disabled:border-gray-300 transform hover:scale-105 disabled:hover:scale-100 ring-4 ring-orange-300 hover:ring-orange-400"
+                  className="bg-[#F97316] text-white border-4 border-[#EA580C] hover:bg-[#EA580C] hover:border-[#C2410C] disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400 disabled:border-gray-400 disabled:text-white px-16 py-8 text-xl font-extrabold shadow-2xl hover:shadow-2xl rounded-2xl transition-all disabled:border-gray-300 transform hover:scale-105 disabled:hover:scale-100 ring-4 ring-orange-300 hover:ring-orange-400"
                 >
                   {isProcessing ? (
                     <>
@@ -482,7 +482,7 @@ export default function Home() {
             {/* Main Assessment Grid */}
             <div className="grid lg:grid-cols-12 gap-6">
               {/* Left Sidebar - Question List */}
-              <div className="lg:col-span-4 order-2 lg:order-1">
+              <div className="lg:col-span-3 order-2 lg:order-1">
                 <Card className="shadow-md border-2 border-purple-300 sticky top-24">
                   <CardHeader className="bg-gradient-to-r from-purple-50 to-orange-50 border-b-2 border-purple-200">
                     <div className="flex items-center justify-between">
@@ -520,9 +520,16 @@ export default function Home() {
                 )}
               </div>
 
-              {/* Right - Combined Question Detail + Answer Sheet */}
-              <div className="lg:col-span-8 flex flex-col gap-6 order-1 lg:order-2">
-                {/* Question Detail */}
+              {/* Right - Answer Sheet + Question Detail */}
+              <div className="lg:col-span-9 flex flex-col gap-6 order-1 lg:order-2">
+                {/* Answer Sheet - Primary Large Area */}
+                <AnswerViewer
+                  answer={selectedQuestion?.answer || null}
+                  totalPages={assessment.total_pages}
+                  assessmentId={(assessment as any)._assessmentId || assessment.id}
+                />
+
+                {/* Question Detail - Secondary */}
                 {selectedQuestion && (
                   <Card className="shadow-md border-2 border-purple-300">
                     <CardHeader className="bg-gradient-to-r from-purple-50 to-orange-50 border-b-2 border-purple-200">
@@ -533,13 +540,6 @@ export default function Home() {
                     </CardContent>
                   </Card>
                 )}
-
-                {/* Answer Sheet - Much Larger */}
-                <AnswerViewer
-                  answer={selectedQuestion?.answer || null}
-                  totalPages={assessment.total_pages}
-                  assessmentId={(assessment as any)._assessmentId || assessment.id}
-                />
               </div>
             </div>
           </div>

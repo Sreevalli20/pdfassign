@@ -124,7 +124,3 @@ class AssessmentResult(BaseModel):
     processing_time_seconds: Optional[float] = None
     error: Optional[str] = None
     completeness_analysis: Optional[CompletenessAnalysis] = None
-
-
-class ProcessRequest(BaseModel):
-    demo_mode: Optional[bool] = False

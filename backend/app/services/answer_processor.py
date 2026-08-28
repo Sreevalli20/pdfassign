@@ -81,7 +81,5 @@ class AnswerProcessor:
             
             return answers
         except Exception as e:
-            print(f"Warning: Could not extract text from PDF: {e}")
             import traceback
-            traceback.print_exc()
             return []

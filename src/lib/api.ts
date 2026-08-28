@@ -1,8 +1,6 @@
 import { AssessmentResult } from "@/types/assessment";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://pdfassign.onrender.com";
-
-// Ensure we're using the production URL
+// Force production URL to prevent localhost issues
 const PRODUCTION_API_URL = "https://pdfassign.onrender.com";
 
 export async function processAssessment(
@@ -12,23 +10,16 @@ export async function processAssessment(
   const formData = new FormData();
   formData.append("question_paper", questionPaper);
   formData.append("answer_sheet", answerSheet);
-  formData.append("demo_mode", "false");
 
   // Store the answer sheet file for later PDF retrieval
   const answerSheetFile = answerSheet;
 
   const url = `${PRODUCTION_API_URL}/api/assessment/process`;
-  console.log('[API] POST request to:', url);
-  console.log('[API] FormData fields:', Array.from(formData.keys()));
-  console.log('[API] Question paper:', questionPaper.name, questionPaper.type, questionPaper.size);
-  console.log('[API] Answer sheet:', answerSheet.name, answerSheet.type, answerSheet.size);
 
   const response = await fetch(url, {
     method: "POST",
     body: formData,
   });
-
-  console.log('[API] Response status:', response.status, response.statusText);
   
   if (!response.ok) {
     const errorText = await response.text();
@@ -79,7 +70,6 @@ export async function processAssessment(
   }
 
   const result = await response.json();
-  console.log('[API] Response result:', result);
   
   // Store the assessment ID for PDF retrieval
   (result as any)._assessmentId = result.id;

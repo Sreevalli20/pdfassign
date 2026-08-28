@@ -137,7 +137,7 @@ export function FileUpload({
               <Button 
                 type="button"
                 size="sm" 
-                className="rounded-lg bg-[#6D28D9] text-white border-[#6D28D9] hover:bg-[#5B21B6] hover:border-[#5B21B6] font-semibold"
+                className="rounded-lg bg-[#6D28D9] text-white border-2 border-[#6D28D9] hover:bg-[#5B21B6] hover:border-[#5B21B6] font-bold shadow-md hover:shadow-lg"
                 onClick={handleBrowseClick}
               >
                 Browse Files

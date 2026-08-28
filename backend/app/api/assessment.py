@@ -46,7 +46,6 @@ def cleanup_old_files(max_age_hours=24):
             filepath = os.path.join(STORAGE_DIR, filename)
             if os.path.getmtime(filepath) < current_time - max_age_seconds:
                 os.remove(filepath)
-                print(f"Cleaned up old file: {filename}")
         
         # Clean up old uploaded files
         if os.path.exists(UPLOAD_DIR):
@@ -54,9 +53,8 @@ def cleanup_old_files(max_age_hours=24):
                 filepath = os.path.join(UPLOAD_DIR, filename)
                 if os.path.getmtime(filepath) < current_time - max_age_seconds:
                     os.remove(filepath)
-                    print(f"Cleaned up old upload: {filename}")
     except Exception as e:
-        print(f"Error during cleanup: {e}")
+        pass
 
 def check_memory_usage():
     """Check current memory usage and return percentage."""
@@ -64,10 +62,8 @@ def check_memory_usage():
         process = psutil.Process(os.getpid())
         memory_info = process.memory_info()
         memory_percent = process.memory_percent()
-        print(f"Memory usage: {memory_info:.1f}% ({memory_info.rss / 1024 / 1024:.1f} MB)")
         return memory_percent
     except Exception as e:
-        print(f"Error checking memory: {e}")
         return 0
 
 def force_garbage_collection():
@@ -76,9 +72,8 @@ def force_garbage_collection():
         before_memory = check_memory_usage()
         gc.collect()
         after_memory = check_memory_usage()
-        print(f"GC freed: {before_memory - after_memory:.1f}% memory")
     except Exception as e:
-        print(f"Error during GC: {e}")
+        pass
 
 def save_assessment(assessment_id: str, data: dict):
     """Save assessment data to file."""
@@ -115,6 +110,13 @@ async def process_assessment(
     answer_sheet: UploadFile = File(...),
     demo_mode: bool = Form(False)
 ):
+    """Process question paper and answer sheet to extract and map answers."""
+    
+    # Cleanup old files periodically
+    cleanup_old_files()
+    
+    # Demo mode is disabled in production - always process real files
+    # The demo_mode parameter is kept for API compatibility but not used
     """Process question paper and answer sheet to extract and map answers."""
     
     # Cleanup old files periodically
@@ -232,7 +234,6 @@ async def process_assessment_sync(
         # Process question paper first, then free memory
         pdf_processor = PDFProcessor()
         questions = pdf_processor.extract_questions_from_pdf(qp_bytes)
-        print(f"Extracted {len(questions)} questions")
         
         # Free question paper memory immediately
         del qp_bytes
@@ -246,7 +247,6 @@ async def process_assessment_sync(
         # Extract answers
         answer_processor = AnswerProcessor()
         answers = answer_processor.extract_answers(as_bytes)
-        print(f"Extracted {len(answers)} answers")
         
         # Get page count before freeing answer sheet memory
         total_pages = 0
@@ -310,7 +310,6 @@ async def process_assessment_sync(
     except Exception as e:
         import traceback
         error_msg = f"{str(e)}\n\n{traceback.format_exc()}"
-        print(f"Error in processing: {error_msg}")
         error_result = AssessmentResult(
             id=assessment_id,
             status=ProcessingStatus.FAILED,
@@ -468,5 +467,4 @@ async def get_assessment_report(assessment_id: str):
     except Exception as e:
         import traceback
         error_msg = f"{str(e)}\n\n{traceback.format_exc()}"
-        print(f"Error generating report: {error_msg}")
         raise HTTPException(status_code=500, detail="Failed to generate report")

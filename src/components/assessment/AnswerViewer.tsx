@@ -36,9 +36,7 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
         setShowTextFallback(false);
         setViewerMode('native');
         try {
-          console.log('[AnswerViewer] Fetching PDF for assessment:', assessmentId);
           const blob = await getAnswerSheetPdf(assessmentId);
-          console.log('[AnswerViewer] Received PDF blob, size:', blob.size, 'type:', blob.type);
           if (blob.size === 0) {
             throw new Error('Received empty PDF file');
           }
@@ -94,7 +92,6 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
   }, []);
 
   const handleNativePdfError = () => {
-    console.log('[AnswerViewer] Native PDF viewer failed, switching to fallback');
     setViewerMode('fallback');
     setShowTextFallback(true);
   };
@@ -234,7 +231,6 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
                 className="w-full h-full border-0 rounded-xl shadow-2xl flex-1 bg-white"
                 title="Answer Sheet PDF"
                 onError={handleNativePdfError}
-                onLoad={() => console.log('[AnswerViewer] Native PDF loaded successfully')}
                 style={{ minHeight: '600px' }}
               />
             </div>
