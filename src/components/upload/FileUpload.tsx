@@ -196,6 +196,7 @@ export function FileUpload({
               onChange={handleFileChange}
               accept={accept}
               id={`file-input-${title.replace(/\s+/g, '-').toLowerCase()}`}
+              style={{ display: 'none' }}
             />
             <div className="flex flex-col items-center">
               <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
@@ -209,21 +210,21 @@ export function FileUpload({
               <p className="text-xs text-[#6B6480] mb-4">
                 PDF, PNG, JPG
               </p>
-              <button
-                type="button"
-                className="rounded-lg bg-[#6D28D9] text-white border-[#6D28D9] hover:bg-[#5B21B6] hover:border-[#5B21B6] font-semibold px-4 py-2 text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-purple-500 cursor-pointer"
-                onClick={() => {
-                  console.log('[FileUpload] Browse Files button clicked');
-                  if (fileInputRef.current) {
-                    fileInputRef.current.value = '';
-                    fileInputRef.current.click();
-                  } else {
-                    console.error('[FileUpload] fileInputRef.current is null');
+              <label
+                htmlFor={`file-input-${title.replace(/\s+/g, '-').toLowerCase()}`}
+                className="rounded-lg bg-[#6D28D9] text-white border-[#6D28D9] hover:bg-[#5B21B6] hover:border-[#5B21B6] font-semibold px-4 py-2 text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-purple-500 cursor-pointer inline-block"
+                onClick={(e) => {
+                  console.log('[FileUpload] Browse Files label clicked');
+                  // Force the input to be re-created to ensure it works
+                  const input = document.getElementById(`file-input-${title.replace(/\s+/g, '-').toLowerCase()}`) as HTMLInputElement;
+                  if (input) {
+                    input.value = '';
+                    input.click();
                   }
                 }}
               >
                 Browse Files
-              </button>
+              </label>
             </div>
           </div>
         ) : (
@@ -252,22 +253,21 @@ export function FileUpload({
                 </div>
               </div>
               <div className="flex gap-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    console.log('[FileUpload] Replace file button clicked');
-                    if (fileInputRef.current) {
-                      fileInputRef.current.value = '';
-                      fileInputRef.current.click();
-                    } else {
-                      console.error('[FileUpload] fileInputRef.current is null');
-                    }
-                  }}
+                <label
+                  htmlFor={`file-input-${title.replace(/\s+/g, '-').toLowerCase()}`}
                   className="h-8 w-8 hover:bg-purple-100 hover:text-purple-600 rounded-md flex items-center justify-center transition-colors cursor-pointer"
                   title="Replace file"
+                  onClick={(e) => {
+                    console.log('[FileUpload] Replace file label clicked');
+                    const input = document.getElementById(`file-input-${title.replace(/\s+/g, '-').toLowerCase()}`) as HTMLInputElement;
+                    if (input) {
+                      input.value = '';
+                      input.click();
+                    }
+                  }}
                 >
                   <RefreshCw className="w-4 h-4" />
-                </button>
+                </label>
                 <button
                   type="button"
                   onClick={onFileRemove}
