@@ -139,3 +139,13 @@ export async function healthCheck(): Promise<{ status: string }> {
   const response = await fetch(`${API_URL}/api/health`);
   return response.json();
 }
+
+export async function getAssessmentReport(assessmentId: string): Promise<Blob> {
+  const response = await fetch(`${API_URL}/api/assessment/${assessmentId}/report`);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch assessment report");
+  }
+
+  return response.blob();
+}

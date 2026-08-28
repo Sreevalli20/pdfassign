@@ -17,26 +17,15 @@ class AnswerMapper:
         normalized = label.replace(' ', '').replace('.', '').lower()
         return normalized
     
-    def extract_assignment_number(self, question_number: str) -> int:
-        """Extract assignment number from composite question number (e.g., '1.1' -> 1)."""
-        try:
-            if '.' in question_number:
-                return int(question_number.split('.')[0])
-            return int(question_number)
-        except:
-            return 0
-    
     def map_by_explicit_label(self, questions: List[Question], answers: List[Answer]) -> Dict[str, AnswerMapping]:
         """Map answers to questions by explicit label matching."""
         mappings = {}
         answer_map = {self.normalize_label(a.label): a for a in answers}
         
         for question in questions:
-            # Extract assignment number from composite question number
-            assignment_num = self.extract_assignment_number(question.number)
+            # Use the question number directly (e.g., "1", "2", "3")
+            q_label = self.normalize_label(question.number)
             
-            # Map answer label (e.g., "1") to all questions in that assignment (e.g., "1.1", "1.2", etc.)
-            q_label = str(assignment_num)
             if q_label in answer_map:
                 answer = answer_map[q_label]
                 # High confidence for exact label match

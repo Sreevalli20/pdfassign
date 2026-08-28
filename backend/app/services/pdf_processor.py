@@ -1,10 +1,7 @@
 import pypdf
-from pdf2image import convert_from_bytes
-import pytesseract
-from PIL import Image
 import io
 import re
-from typing import List, Tuple, Optional, Set
+from typing import List, Set
 from app.schemas.assessment import Question, BoundingBox
 import gc
 
@@ -13,31 +10,10 @@ class PDFProcessor:
     """Process PDF question papers and answer sheets."""
     
     def __init__(self):
-        self.ocr_config = '--psm 6'  # Assume uniform text block
-    
-    def extract_text_from_pdf(self, pdf_bytes: bytes) -> str:
-        """Extract text from PDF using pypdf."""
-        pdf_file = io.BytesIO(pdf_bytes)
-        reader = pypdf.PdfReader(pdf_file)
-        text = ""
-        for page in reader.pages:
-            text += page.extract_text() + "\n"
-        return text
-    
-    def pdf_to_images(self, pdf_bytes: bytes) -> List[Image.Image]:
-        """Convert PDF pages to images for OCR."""
-        try:
-            return convert_from_bytes(pdf_bytes)
-        except Exception as e:
-            print(f"Warning: Could not convert PDF to images (poppler may not be installed): {e}")
-            return []
-    
-    def ocr_image(self, image: Image.Image) -> str:
-        """Extract text from image using Tesseract OCR."""
-        return pytesseract.image_to_string(image, config=self.ocr_config)
+        pass
     
     def extract_questions_from_text(self, text: str, page: int = 1, seen_numbers: Set[str] = None) -> List[Question]:
-        """Extract questions from text using improved pattern matching for task-based questions."""
+        """Extract questions from text by detecting Assignment headers as main questions."""
         if seen_numbers is None:
             seen_numbers = set()
             
@@ -45,11 +21,6 @@ class PDFProcessor:
         
         # Split text into lines for better analysis
         lines = text.split('\n')
-        
-        # Track assignment context
-        current_assignment = None
-        assignment_number = 0
-        in_tasks_section = False
         
         i = 0
         while i < len(lines):
@@ -64,58 +35,49 @@ class PDFProcessor:
             assignment_match = re.match(r'^Assignment\s+(\d+):', line, re.IGNORECASE)
             if assignment_match:
                 assignment_number = int(assignment_match.group(1))
-                current_assignment = assignment_number
-                in_tasks_section = False
-                i += 1
-                continue
-            
-            # Detect "Tasks:" section header
-            if line.lower() == 'tasks:':
-                in_tasks_section = True
-                i += 1
-                continue
-            
-            # Pattern for task numbers at start of line (in Tasks sections)
-            # Format: "1. " or "2. " followed by task description
-            task_match = re.match(r'^(\d+)\.\s+(.+)', line)
-            
-            if task_match and current_assignment and in_tasks_section:
-                task_number = int(task_match.group(1))
-                task_text = task_match.group(2).strip()
+                assignment_label = str(assignment_number)
                 
-                # Create composite question number (e.g., "1.1", "1.2" for Assignment 1, tasks 1-6)
-                composite_number = f"{current_assignment}.{task_number}"
-                
-                # Skip if we've already seen this composite number
-                if composite_number in seen_numbers:
+                # Skip if we've already seen this assignment number
+                if assignment_label in seen_numbers:
                     i += 1
-                else:
-                    # Get full task text (may span multiple lines)
-                    full_text = task_text
-                    j = i + 1
-                    while j < len(lines) and lines[j].strip() and not re.match(r'^\d+\.', lines[j].strip()):
-                        full_text += " " + lines[j].strip()
-                        j += 1
-                    
-                    # Generate question ID
-                    q_id = f"q_{current_assignment}_{task_number}"
-                    
-                    # Create bounding box (placeholder)
-                    y_pos = min(0.1 + len(questions) * 0.03, 0.9)
-                    bbox = BoundingBox(x=0.1, y=y_pos, width=0.8, height=0.08)
-                    
-                    question = Question(
-                        id=q_id,
-                        number=composite_number,
-                        text=full_text[:300] + "..." if len(full_text) > 300 else full_text,
-                        page=page,
-                        bbox=bbox,
-                        confidence=0.85,
-                        sub_part=None
-                    )
-                    questions.append(question)
-                    seen_numbers.add(composite_number)
-                    i = j
+                    continue
+                
+                # Get full assignment text (may span multiple lines until next assignment or end)
+                full_text = line
+                j = i + 1
+                while j < len(lines):
+                    next_line = lines[j].strip()
+                    # Stop at next assignment header
+                    if re.match(r'^Assignment\s+\d+:', next_line, re.IGNORECASE):
+                        break
+                    # Stop at empty line followed by next assignment
+                    if not next_line and j + 1 < len(lines) and re.match(r'^Assignment\s+\d+:', lines[j + 1].strip(), re.IGNORECASE):
+                        break
+                    full_text += "\n" + lines[j]
+                    j += 1
+                
+                # Generate question ID
+                q_id = f"q_{assignment_number}"
+                
+                # Create bounding box (placeholder)
+                y_pos = min(0.1 + len(questions) * 0.03, 0.9)
+                bbox = BoundingBox(x=0.1, y=y_pos, width=0.8, height=0.08)
+                
+                # Truncate text if too long
+                display_text = full_text[:400] + "..." if len(full_text) > 400 else full_text
+                
+                question = Question(
+                    id=q_id,
+                    number=assignment_label,
+                    text=display_text,
+                    page=page,
+                    bbox=bbox,
+                    confidence=0.90,
+                    sub_part=None
+                )
+                questions.append(question)
+                seen_numbers.add(assignment_label)
+                i = j
             else:
                 i += 1
         

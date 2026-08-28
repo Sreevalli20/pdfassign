@@ -15,8 +15,8 @@ import {
   QuestionWithStatus,
   ProcessingStatus,
 } from "@/types/assessment";
-import { processAssessment, getAssessment } from "@/lib/api";
-import { Brain, FileText, Sparkles, ArrowLeft, Settings, HelpCircle, Upload, Search, Highlighter, CheckCircle } from "lucide-react";
+import { processAssessment, getAssessment, getAssessmentReport } from "@/lib/api";
+import { Brain, FileText, Sparkles, ArrowLeft, Settings, HelpCircle, Upload, Search, Highlighter, CheckCircle, Download, ChevronRight } from "lucide-react";
 import dynamic from "next/dynamic";
 
 const AnswerViewer = dynamic(() => import("@/components/assessment/AnswerViewer").then(mod => ({ default: mod.AnswerViewer })), {
@@ -103,6 +103,25 @@ export default function Home() {
     setError(null);
   };
 
+  const handleDownloadReport = async () => {
+    if (assessment) {
+      try {
+        const blob = await getAssessmentReport(assessment.id);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `assessment_report_${assessment.id}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error('Failed to download report:', error);
+        alert('Failed to download report. Please try again.');
+      }
+    }
+  };
+
   const selectedQuestion = assessment?.questions.find(
     (q) => q.question.id === selectedQuestionId
   );
@@ -130,10 +149,16 @@ export default function Home() {
                 <Settings className="w-5 h-5" />
               </Button>
               {assessment && (
-                <Button variant="outline" onClick={handleReset} className="gap-2 ml-4">
-                  <ArrowLeft className="w-4 h-4" />
-                  Back to Upload
-                </Button>
+                <>
+                  <Button variant="outline" onClick={handleDownloadReport} className="gap-2">
+                    <Download className="w-4 h-4" />
+                    Download Report
+                  </Button>
+                  <Button variant="outline" onClick={handleReset} className="gap-2">
+                    <ArrowLeft className="w-4 h-4" />
+                    Back to Upload
+                  </Button>
+                </>
               )}
             </div>
           </div>
@@ -145,12 +170,16 @@ export default function Home() {
           <div className="max-w-5xl mx-auto">
             {/* Hero Section */}
             <div className="text-center mb-16">
-              <h1 className="text-5xl font-bold text-gray-900 mb-6 tracking-tight">
-                Turn handwritten assessments into actionable insights.
+              <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
+                <Brain className="w-4 h-4" />
+                AI-Powered Assessment Review
+              </div>
+              <h1 className="text-5xl font-bold text-gray-900 mb-6 tracking-tight leading-tight">
+                Transform Grading with Intelligent Assessment Analysis
               </h1>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                Upload a question paper and student answer sheet to automatically extract, 
-                map, and review answers with AI-powered precision.
+                Upload your question papers and student answer sheets. Our AI extracts questions, 
+                maps answers, and provides detailed grading insights in seconds.
               </p>
             </div>
 
@@ -159,7 +188,7 @@ export default function Home() {
               <div className="grid md:grid-cols-2 gap-8">
                 <FileUpload
                   title="Question Paper"
-                  description="Drop your PDF or images here"
+                  description="Upload your assignment or exam paper (PDF, PNG, JPG)"
                   file={questionPaper}
                   onFileSelect={(file) =>
                     setQuestionPaper({
@@ -174,7 +203,7 @@ export default function Home() {
                 />
                 <FileUpload
                   title="Student Answer Sheet"
-                  description="Drop your handwritten answer sheet here"
+                  description="Upload the student's handwritten or typed answers"
                   file={answerSheet}
                   onFileSelect={(file) =>
                     setAnswerSheet({
@@ -194,9 +223,11 @@ export default function Home() {
                   onClick={handleProcess}
                   disabled={!questionPaper || !answerSheet}
                   size="lg"
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-12 py-6 text-lg font-semibold shadow-xl rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-16 py-6 text-lg font-semibold shadow-xl rounded-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transition-all"
                 >
-                  Process Assessment →
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  Process Assessment
+                  <ChevronRight className="w-5 h-5 ml-2" />
                 </Button>
               </div>
             </div>

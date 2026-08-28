@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, FileText, Loader2, Maximize2, Minimize2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, FileText, Loader2, Maximize2, Minimize2, Download } from "lucide-react";
 import { Answer, BoundingBox } from "@/types/assessment";
 import { Document, Page, pdfjs } from "react-pdf";
 import { getAnswerSheetPdf } from "@/lib/api";
@@ -26,6 +26,7 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
   const [pdfError, setPdfError] = useState<string | null>(null);
   const [pageWidth, setPageWidth] = useState(600);
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
+  const [showTextFallback, setShowTextFallback] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Fetch PDF from backend when assessmentId changes
@@ -34,6 +35,7 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
       if (assessmentId) {
         setPdfLoading(true);
         setPdfError(null);
+        setShowTextFallback(false);
         try {
           console.log('[AnswerViewer] Fetching PDF for assessment:', assessmentId);
           const blob = await getAnswerSheetPdf(assessmentId);
@@ -46,6 +48,7 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
           console.error('[AnswerViewer] Failed to fetch PDF:', error);
           const errorMessage = error instanceof Error ? error.message : 'Failed to load answer sheet PDF from server. Please try again.';
           setPdfError(errorMessage);
+          setShowTextFallback(true);
         } finally {
           setPdfLoading(false);
         }
@@ -86,6 +89,7 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
   function onDocumentLoadError(error: Error) {
     setPdfLoading(false);
     setPdfError(`Failed to load PDF: ${error.message || 'Unknown error'}`);
+    setShowTextFallback(true);
     console.error("PDF load error:", error);
   }
 
@@ -104,6 +108,24 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
 
   const handleZoomOut = () => {
     setZoom((prev) => Math.max(0.5, prev - 0.25));
+  };
+
+  const handleDownloadPdf = async () => {
+    if (assessmentId) {
+      try {
+        const blob = await getAnswerSheetPdf(assessmentId);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `answer_sheet_${assessmentId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error('Failed to download PDF:', error);
+      }
+    }
   };
 
   const getCurrentRegion = () => {
@@ -150,6 +172,11 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
             <Button variant="outline" size="icon" onClick={() => setZoom(1)} className="h-8 w-8" title="Reset zoom">
               <Maximize2 className="w-4 h-4" />
             </Button>
+            {assessmentId && (
+              <Button variant="outline" size="icon" onClick={handleDownloadPdf} className="h-8 w-8" title="Download PDF">
+                <Download className="w-4 h-4" />
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -207,14 +234,38 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
                 <p className="text-sm text-gray-600">Loading answer sheet...</p>
               </div>
             </div>
-          ) : pdfError ? (
+          ) : pdfError || showTextFallback ? (
             <div className="flex items-center justify-center p-12">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-3 mx-auto">
-                  <FileText className="w-8 h-8 text-red-600" />
+              <div className="text-center max-w-lg">
+                <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-3 mx-auto">
+                  <FileText className="w-8 h-8 text-amber-600" />
                 </div>
-                <p className="text-red-700 font-medium mb-1">PDF Load Error</p>
-                <p className="text-red-600 text-sm">{pdfError}</p>
+                <p className="text-amber-700 font-medium mb-1">PDF Viewer Unavailable</p>
+                <p className="text-amber-600 text-sm mb-4">{pdfError || "PDF rendering is not available in this browser"}</p>
+                
+                {answer && (
+                  <div className="bg-white border border-gray-200 rounded-lg p-4 text-left">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-semibold text-gray-900">Answer {answer.label}</h4>
+                      {assessmentId && (
+                        <Button variant="outline" size="sm" onClick={handleDownloadPdf} className="gap-2">
+                          <Download className="w-4 h-4" />
+                          Download PDF
+                        </Button>
+                      )}
+                    </div>
+                    <div className="bg-gray-50 rounded p-3 text-sm text-gray-700 max-h-64 overflow-y-auto">
+                      {answer.text || "No answer text available"}
+                    </div>
+                    {isMultiPage && (
+                      <div className="mt-3 flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">
+                          Pages: {answer.pages.join(", ")}
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           ) : (

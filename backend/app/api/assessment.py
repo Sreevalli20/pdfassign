@@ -4,6 +4,7 @@ from app.schemas.assessment import AssessmentResult, ProcessingStatus
 from app.services.pdf_processor import PDFProcessor
 from app.services.answer_processor import AnswerProcessor
 from app.services.answer_mapper import AnswerMapper
+from app.services.report_generator import ReportGenerator
 import uuid
 import os
 import io
@@ -26,7 +27,9 @@ import time
 
 # Use persistent directory for Render
 STORAGE_DIR = os.path.join(os.getcwd(), "temp", "storage")
+UPLOAD_DIR = "temp/uploads"
 os.makedirs(STORAGE_DIR, exist_ok=True)
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # Cleanup old files to prevent disk space issues
 def cleanup_old_files(max_age_hours=24):
@@ -43,10 +46,9 @@ def cleanup_old_files(max_age_hours=24):
                 print(f"Cleaned up old file: {filename}")
         
         # Clean up old uploaded files
-        upload_dir = "temp/uploads"
-        if os.path.exists(upload_dir):
-            for filename in os.listdir(upload_dir):
-                filepath = os.path.join(upload_dir, filename)
+        if os.path.exists(UPLOAD_DIR):
+            for filename in os.listdir(UPLOAD_DIR):
+                filepath = os.path.join(UPLOAD_DIR, filename)
                 if os.path.getmtime(filepath) < current_time - max_age_seconds:
                     os.remove(filepath)
                     print(f"Cleaned up old upload: {filename}")
@@ -159,11 +161,8 @@ async def process_assessment(
         del as_pdf_file
     
     # Save uploaded files
-    upload_dir = "temp/uploads"
-    os.makedirs(upload_dir, exist_ok=True)
-    
-    qp_path = os.path.join(upload_dir, f"{assessment_id}_qp{qp_ext}")
-    as_path = os.path.join(upload_dir, f"{assessment_id}_as{as_ext}")
+    qp_path = os.path.join(UPLOAD_DIR, f"{assessment_id}_qp{qp_ext}")
+    as_path = os.path.join(UPLOAD_DIR, f"{assessment_id}_as{as_ext}")
     
     with open(qp_path, "wb") as f:
         f.write(qp_content)
@@ -392,3 +391,43 @@ async def head_question_paper_pdf(assessment_id: str):
         raise HTTPException(status_code=404, detail="Question paper file not found")
     
     return JSONResponse(status_code=200, content={})
+
+
+@router.get("/{assessment_id}/report")
+async def get_assessment_report(assessment_id: str):
+    """Generate and download a PDF assessment report."""
+    data = load_assessment(assessment_id)
+    if not data:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+    
+    try:
+        # Convert dict back to AssessmentResult
+        assessment = AssessmentResult(**data)
+        
+        # Generate report
+        report_generator = ReportGenerator()
+        report_bytes = report_generator.generate_assessment_report(
+            assessment.questions,
+            assessment_id
+        )
+        
+        # Clean up
+        del report_generator
+        gc.collect()
+        
+        # Create temp file for FileResponse
+        temp_file = os.path.join(UPLOAD_DIR, f"report_{assessment_id}.pdf")
+        with open(temp_file, "wb") as f:
+            f.write(report_bytes)
+        
+        # Return as file response
+        return FileResponse(
+            temp_file,
+            media_type="application/pdf",
+            filename=f"vedaai_assessment_report.pdf"
+        )
+    except Exception as e:
+        import traceback
+        error_msg = f"{str(e)}\n\n{traceback.format_exc()}"
+        print(f"Error generating report: {error_msg}")
+        raise HTTPException(status_code=500, detail="Failed to generate report")
