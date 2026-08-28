@@ -133,22 +133,19 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                <Brain className="w-6 h-6 text-white" />
+              <div className="flex items-center">
+                <span className="text-2xl font-bold text-[#5B21B6]">Veda</span>
+                <span className="text-2xl font-bold text-[#F97316]">AI</span>
               </div>
-              <div>
-                <h1 className="text-xl font-bold text-[#18122B]">VedaAI</h1>
-                <p className="text-xs text-[#6B6480] font-medium">AI Assessment Review</p>
-              </div>
-              <div className="ml-2 bg-gradient-to-r from-orange-500 to-purple-600 text-white text-xs px-2 py-1 rounded-full font-medium">
-                AI
+              <div className="ml-3 border-l border-purple-200 pl-3">
+                <p className="text-sm font-medium text-[#6B6480]">AI Assessment Review</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" className="text-[#6B6480] hover:text-[#18122B]">
+              <Button variant="ghost" size="icon" className="text-[#6B6480] hover:text-[#7C3AED]">
                 <HelpCircle className="w-5 h-5" />
               </Button>
-              <Button variant="ghost" size="icon" className="text-[#6B6480] hover:text-[#18122B]">
+              <Button variant="ghost" size="icon" className="text-[#6B6480] hover:text-[#7C3AED]">
                 <Settings className="w-5 h-5" />
               </Button>
               {assessment && (
@@ -156,7 +153,7 @@ export default function Home() {
                   <Button 
                     variant="outline" 
                     onClick={handleDownloadReport} 
-                    className="gap-2 border-purple-300 text-purple-700 hover:bg-purple-50"
+                    className="gap-2 border-purple-400 text-purple-700 hover:bg-purple-50 font-semibold"
                   >
                     <Download className="w-4 h-4" />
                     Download Report
@@ -164,7 +161,7 @@ export default function Home() {
                   <Button 
                     variant="outline" 
                     onClick={handleReset} 
-                    className="gap-2 border-purple-300 text-purple-700 hover:bg-purple-50"
+                    className="gap-2 border-purple-400 text-purple-700 hover:bg-purple-50 font-semibold"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     Back to Upload
@@ -233,7 +230,7 @@ export default function Home() {
                   onClick={handleProcess}
                   disabled={!questionPaper || !answerSheet}
                   size="lg"
-                  className="bg-gradient-to-r from-orange-500 to-purple-600 hover:from-orange-600 hover:to-purple-700 text-white px-16 py-6 text-lg font-semibold shadow-xl rounded-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transition-all"
+                  className="bg-gradient-to-r from-[#F97316] to-[#7C3AED] hover:from-[#F97316] hover:to-[#7C3AED] text-white px-16 py-6 text-lg font-bold shadow-xl rounded-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transition-all"
                 >
                   <Sparkles className="w-5 h-5 mr-2" />
                   Process Assessment
@@ -317,10 +314,10 @@ export default function Home() {
 
             {/* Summary Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              <Card className="border-0 shadow-sm bg-white border-t-4 border-t-purple-600">
+              <Card className="border-0 shadow-sm bg-white border-t-4 border-t-[#7C3AED]">
                 <CardContent className="p-4">
                   <div className="text-2xl font-bold text-[#18122B]">{assessment.questions.length}</div>
-                  <div className="text-sm text-[#6B6480]">Questions</div>
+                  <div className="text-sm text-[#6B6480] font-medium">Questions</div>
                 </CardContent>
               </Card>
               <Card className="border-0 shadow-sm bg-white border-t-4 border-t-green-600">
@@ -328,7 +325,7 @@ export default function Home() {
                   <div className="text-2xl font-bold text-green-700">
                     {assessment.questions.filter(q => q.status === "answered").length}
                   </div>
-                  <div className="text-sm text-green-600">Answered</div>
+                  <div className="text-sm text-green-600 font-medium">Answered</div>
                 </CardContent>
               </Card>
               <Card className="border-0 shadow-sm bg-white border-t-4 border-t-red-600">
@@ -336,15 +333,15 @@ export default function Home() {
                   <div className="text-2xl font-bold text-red-700">
                     {assessment.questions.filter(q => q.status === "unanswered").length}
                   </div>
-                  <div className="text-sm text-red-600">Unanswered</div>
+                  <div className="text-sm text-red-600 font-medium">Unanswered</div>
                 </CardContent>
               </Card>
-              <Card className="border-0 shadow-sm bg-white border-t-4 border-t-orange-600">
+              <Card className="border-0 shadow-sm bg-white border-t-4 border-t-[#F97316]">
                 <CardContent className="p-4">
-                  <div className="text-2xl font-bold text-orange-700">
+                  <div className="text-2xl font-bold text-[#F97316]">
                     {assessment.questions.filter(q => q.status === "needs_review").length}
                   </div>
-                  <div className="text-sm text-orange-600">Needs Review</div>
+                  <div className="text-sm text-[#F97316] font-medium">Needs Review</div>
                 </CardContent>
               </Card>
             </div>
@@ -352,12 +349,12 @@ export default function Home() {
             {/* Main Assessment Grid */}
             <div className="grid lg:grid-cols-12 gap-6">
               {/* Left Sidebar - Question List */}
-              <div className="lg:col-span-3">
-                <Card className="shadow-sm border border-gray-200 sticky top-24">
-                  <CardHeader className="bg-gray-50 border-b">
+              <div className="lg:col-span-4 order-2 lg:order-1">
+                <Card className="shadow-sm border border-purple-200 sticky top-24">
+                  <CardHeader className="bg-gradient-to-r from-purple-50 to-orange-50 border-b border-purple-200">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-base font-semibold">QUESTIONS</CardTitle>
-                      <Badge variant="secondary" className="text-xs">
+                      <CardTitle className="text-base font-bold text-[#18122B]">QUESTIONS</CardTitle>
+                      <Badge variant="secondary" className="text-xs bg-white border-purple-300 text-purple-700 font-semibold">
                         {assessment.questions.length}
                       </Badge>
                     </div>
@@ -373,12 +370,12 @@ export default function Home() {
                 
                 {/* Unmatched Answers */}
                 {assessment.unmatched_answers.length > 0 && (
-                  <Card className="mt-4 shadow-sm border border-yellow-200 bg-yellow-50">
-                    <CardHeader className="bg-yellow-100 border-b">
-                      <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                        <Sparkles className="w-4 h-4" />
+                  <Card className="mt-4 shadow-sm border border-orange-200 bg-orange-50">
+                    <CardHeader className="bg-orange-100 border-b border-orange-200">
+                      <CardTitle className="text-sm font-bold flex items-center gap-2 text-[#18122B]">
+                        <Sparkles className="w-4 h-4 text-[#F97316]" />
                         Unmatched Answers
-                        <Badge variant="secondary" className="text-xs">
+                        <Badge variant="secondary" className="text-xs bg-white border-orange-300 text-orange-700 font-semibold">
                           {assessment.unmatched_answers.length}
                         </Badge>
                       </CardTitle>
@@ -390,27 +387,26 @@ export default function Home() {
                 )}
               </div>
 
-              {/* Center - PDF Viewer */}
-              <div className="lg:col-span-6">
-                <AnswerViewer
-                  answer={selectedQuestion?.answer || null}
-                  totalPages={assessment.total_pages}
-                  assessmentId={(assessment as any)._assessmentId || assessment.id}
-                />
-              </div>
-
-              {/* Right Sidebar - Question Detail */}
-              <div className="lg:col-span-3">
+              {/* Right - Combined Question Detail + Answer Sheet */}
+              <div className="lg:col-span-8 flex flex-col gap-6 order-1 lg:order-2">
+                {/* Question Detail */}
                 {selectedQuestion && (
-                  <Card className="shadow-sm border border-gray-200 sticky top-24">
-                    <CardHeader className="bg-gray-50 border-b">
-                      <CardTitle className="text-base font-semibold">Question Details</CardTitle>
+                  <Card className="shadow-sm border border-purple-200">
+                    <CardHeader className="bg-gradient-to-r from-purple-50 to-orange-50 border-b border-purple-200">
+                      <CardTitle className="text-base font-bold text-[#18122B]">Question Details</CardTitle>
                     </CardHeader>
                     <CardContent className="p-4">
                       <QuestionDetail questionWithStatus={selectedQuestion} />
                     </CardContent>
                   </Card>
                 )}
+
+                {/* Answer Sheet - Much Larger */}
+                <AnswerViewer
+                  answer={selectedQuestion?.answer || null}
+                  totalPages={assessment.total_pages}
+                  assessmentId={(assessment as any)._assessmentId || assessment.id}
+                />
               </div>
             </div>
           </div>
