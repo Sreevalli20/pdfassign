@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { FileUpload } from "@/components/upload/FileUpload";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProcessingView } from "@/components/processing/ProcessingView";
 import { QuestionList } from "@/components/assessment/QuestionList";
@@ -147,30 +146,28 @@ export default function Home() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" className="text-[#6B6480] hover:text-[#7C3AED] hover:bg-purple-50 border border-transparent hover:border-purple-200">
+              <button className="text-[#6B6480] hover:text-[#7C3AED] hover:bg-purple-50 border border-transparent hover:border-purple-200 rounded-md p-2 transition-colors cursor-pointer">
                 <HelpCircle className="w-5 h-5" />
-              </Button>
-              <Button variant="ghost" size="icon" className="text-[#6B6480] hover:text-[#7C3AED] hover:bg-purple-50 border border-transparent hover:border-purple-200">
+              </button>
+              <button className="text-[#6B6480] hover:text-[#7C3AED] hover:bg-purple-50 border border-transparent hover:border-purple-200 rounded-md p-2 transition-colors cursor-pointer">
                 <Settings className="w-5 h-5" />
-              </Button>
+              </button>
               {assessment && (
                 <>
-                  <Button 
-                    variant="outline" 
+                  <button 
                     onClick={handleDownloadReport} 
-                    className="gap-2 border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-bold shadow-sm hover:shadow-md"
+                    className="gap-2 border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-bold shadow-sm hover:shadow-md px-4 py-2 rounded-md transition-all cursor-pointer"
                   >
                     <Download className="w-4 h-4" />
                     Download Report
-                  </Button>
-                  <Button 
-                    variant="outline" 
+                  </button>
+                  <button 
                     onClick={handleReset} 
-                    className="gap-2 border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-bold shadow-sm hover:shadow-md"
+                    className="gap-2 border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-bold shadow-sm hover:shadow-md px-4 py-2 rounded-md transition-all cursor-pointer"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     Back to Upload
-                  </Button>
+                  </button>
                 </>
               )}
             </div>
@@ -231,11 +228,10 @@ export default function Home() {
               </div>
 
               <div className="flex justify-center mt-8">
-                <Button
+                <button
                   onClick={handleProcess}
                   disabled={!questionPaper || !answerSheet || isProcessing}
-                  size="lg"
-                  className="bg-gradient-to-r from-[#F97316] to-[#FB923C] hover:from-[#EA580C] hover:to-[#F97316] text-white px-16 py-8 text-xl font-extrabold shadow-2xl hover:shadow-2xl rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transition-all border-4 border-orange-700 disabled:border-gray-300 disabled:bg-gray-400 transform hover:scale-105 disabled:hover:scale-100 ring-4 ring-orange-300 hover:ring-orange-400"
+                  className="bg-[#F97316] text-white border-[#F97316] hover:bg-[#EA580C] hover:border-[#EA580C] disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400 disabled:border-gray-400 disabled:text-white px-16 py-8 text-xl font-extrabold shadow-2xl hover:shadow-2xl rounded-2xl transition-all border-4 border-orange-700 disabled:border-gray-300 transform hover:scale-105 disabled:hover:scale-100 ring-4 ring-orange-300 hover:ring-orange-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-500 cursor-pointer"
                 >
                   {isProcessing ? (
                     <>
@@ -249,7 +245,7 @@ export default function Home() {
                       <ChevronRight className="w-6 h-6 ml-3" />
                     </>
                   )}
-                </Button>
+                </button>
               </div>
             </div>
 
@@ -317,13 +313,12 @@ export default function Home() {
                       <p className="text-red-700 text-sm">{error}</p>
                     </div>
                   </div>
-                  <Button 
-                    variant="outline" 
+                  <button 
                     onClick={handleProcess}
-                    className="mt-4 border-red-300 text-red-700 hover:bg-red-100"
+                    className="mt-4 border-red-300 text-red-700 hover:bg-red-100 px-4 py-2 rounded-md transition-colors cursor-pointer"
                   >
                     Retry
-                  </Button>
+                  </button>
                 </CardContent>
               </Card>
             )}

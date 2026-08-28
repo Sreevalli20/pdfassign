@@ -1,6 +1,5 @@
 import { useState, useRef } from "react";
 import { Upload, X, FileText, Image as ImageIcon, CheckCircle2, RefreshCw, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { UploadedFile } from "@/types/assessment";
 
@@ -130,9 +129,13 @@ export function FileUpload({
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('[FileUpload] File input changed');
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
+      console.log('[FileUpload] File selected:', selectedFile.name, selectedFile.type, selectedFile.size);
       handleFileSelect(selectedFile);
+    } else {
+      console.log('[FileUpload] No file selected');
     }
   };
 
@@ -192,6 +195,7 @@ export function FileUpload({
               className="hidden"
               onChange={handleFileChange}
               accept={accept}
+              id={`file-input-${title.replace(/\s+/g, '-').toLowerCase()}`}
             />
             <div className="flex flex-col items-center">
               <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
@@ -205,20 +209,21 @@ export function FileUpload({
               <p className="text-xs text-[#6B6480] mb-4">
                 PDF, PNG, JPG
               </p>
-              <Button 
+              <button
                 type="button"
-                variant="outline" 
-                size="sm" 
-                className="rounded-lg border-purple-400 text-purple-700 hover:bg-gradient-to-r hover:from-orange-500 hover:to-purple-600 hover:text-white hover:border-transparent font-semibold"
+                className="rounded-lg bg-[#6D28D9] text-white border-[#6D28D9] hover:bg-[#5B21B6] hover:border-[#5B21B6] font-semibold px-4 py-2 text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-purple-500 cursor-pointer"
                 onClick={() => {
+                  console.log('[FileUpload] Browse Files button clicked');
                   if (fileInputRef.current) {
                     fileInputRef.current.value = '';
                     fileInputRef.current.click();
+                  } else {
+                    console.error('[FileUpload] fileInputRef.current is null');
                   }
                 }}
               >
-                Browse files
-              </Button>
+                Browse Files
+              </button>
             </div>
           </div>
         ) : (
@@ -247,29 +252,30 @@ export function FileUpload({
                 </div>
               </div>
               <div className="flex gap-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
+                <button
+                  type="button"
                   onClick={() => {
+                    console.log('[FileUpload] Replace file button clicked');
                     if (fileInputRef.current) {
                       fileInputRef.current.value = '';
                       fileInputRef.current.click();
+                    } else {
+                      console.error('[FileUpload] fileInputRef.current is null');
                     }
                   }}
-                  className="h-8 w-8 hover:bg-purple-100 hover:text-purple-600"
+                  className="h-8 w-8 hover:bg-purple-100 hover:text-purple-600 rounded-md flex items-center justify-center transition-colors cursor-pointer"
                   title="Replace file"
                 >
                   <RefreshCw className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
+                </button>
+                <button
+                  type="button"
                   onClick={onFileRemove}
-                  className="h-8 w-8 hover:bg-red-100 hover:text-red-600"
+                  className="h-8 w-8 hover:bg-red-100 hover:text-red-600 rounded-md flex items-center justify-center transition-colors cursor-pointer"
                   title="Remove file"
                 >
                   <X className="w-4 h-4" />
-                </Button>
+                </button>
               </div>
             </div>
           </div>

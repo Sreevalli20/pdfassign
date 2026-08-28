@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, FileText, Loader2, Maximize2, Minimize2, Download, AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { Answer, BoundingBox } from "@/types/assessment";
@@ -169,52 +168,50 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" onClick={handleZoomOut} className="h-10 w-10 border-purple-400 text-purple-700 hover:bg-purple-50">
+            <button onClick={handleZoomOut} className="h-10 w-10 border-purple-400 text-purple-700 hover:bg-purple-50 rounded-md p-2 transition-colors cursor-pointer" title="Zoom out">
               <ZoomOut className="w-5 h-5" />
-            </Button>
+            </button>
             <span className="text-sm font-bold text-[#18181B] w-16 text-center bg-white px-3 py-2 rounded-lg border-2 border-purple-300">
               {Math.round(zoom * 100)}%
             </span>
-            <Button variant="outline" size="icon" onClick={handleZoomIn} className="h-10 w-10 border-purple-400 text-purple-700 hover:bg-purple-50">
+            <button onClick={handleZoomIn} className="h-10 w-10 border-purple-400 text-purple-700 hover:bg-purple-50 rounded-md p-2 transition-colors cursor-pointer" title="Zoom in">
               <ZoomIn className="w-5 h-5" />
-            </Button>
-            <Button variant="outline" size="icon" onClick={() => setZoom(1)} className="h-10 w-10 border-purple-400 text-purple-700 hover:bg-purple-50" title="Reset zoom">
+            </button>
+            <button onClick={() => setZoom(1)} className="h-10 w-10 border-purple-400 text-purple-700 hover:bg-purple-50 rounded-md p-2 transition-colors cursor-pointer" title="Reset zoom">
               <Maximize2 className="w-5 h-5" />
-            </Button>
+            </button>
             {assessmentId && (
-              <Button variant="outline" onClick={handleDownloadPdf} className="h-10 px-4 border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-bold gap-2">
+              <button onClick={handleDownloadPdf} className="h-10 px-4 border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-bold gap-2 rounded-md transition-colors cursor-pointer">
                 <Download className="w-4 h-4" />
                 Download
-              </Button>
+              </button>
             )}
           </div>
         </div>
         
         {/* Page Navigation */}
         <div className="flex items-center justify-between pt-4 border-t-2 border-purple-200">
-          <Button
-            variant="outline"
+          <button
             onClick={handlePreviousPage}
             disabled={currentPage === 1}
-            className="gap-2 border-2 border-purple-400 text-purple-700 hover:bg-purple-50 font-bold px-6"
+            className="gap-2 border-2 border-purple-400 text-purple-700 hover:bg-purple-50 font-bold px-6 py-2 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             <ChevronLeft className="w-4 h-4" />
             Previous
-          </Button>
+          </button>
           <div className="flex items-center gap-2">
             <span className="text-lg font-bold text-[#18181B]">
               Page {currentPage} of {totalPages || 1}
             </span>
           </div>
-          <Button
-            variant="outline"
+          <button
             onClick={handleNextPage}
             disabled={currentPage === (totalPages || 1)}
-            className="gap-2 border-2 border-purple-400 text-purple-700 hover:bg-purple-50 font-bold px-6"
+            className="gap-2 border-2 border-purple-400 text-purple-700 hover:bg-purple-50 font-bold px-6 py-2 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             Next
             <ChevronRight className="w-4 h-4" />
-          </Button>
+          </button>
         </div>
       </div>
 
@@ -249,26 +246,24 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
                 
                 {assessmentId && (
                   <div className="flex flex-col gap-3 mb-8">
-                    <Button 
-                      variant="outline" 
+                    <button 
                       onClick={handleDownloadPdf} 
-                      className="gap-2 border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-bold px-8"
+                      className="gap-2 border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-bold px-8 py-2 rounded-md transition-colors cursor-pointer"
                     >
                       <Download className="w-5 h-5" />
                       Download Answer Sheet
-                    </Button>
-                    <Button 
-                      variant="outline" 
+                    </button>
+                    <button 
                       onClick={() => {
                         if (nativePdfUrl) {
                           window.open(nativePdfUrl, '_blank');
                         }
                       }}
-                      className="gap-2 border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-bold px-8"
+                      className="gap-2 border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-bold px-8 py-2 rounded-md transition-colors cursor-pointer"
                     >
                       <Maximize2 className="w-5 h-5" />
                       Open in New Tab
-                    </Button>
+                    </button>
                   </div>
                 )}
                 
@@ -373,26 +368,22 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
               </div>
               <div className="flex gap-2">
                 {assessmentId && (
-                  <Button 
-                    variant="outline" 
-                    size="sm"
+                  <button 
                     onClick={handleDownloadPdf} 
-                    className="gap-2 border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-bold"
+                    className="gap-2 border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-bold px-3 py-1.5 rounded-md transition-colors cursor-pointer text-sm"
                   >
                     <Download className="w-4 h-4" />
                     Download
-                  </Button>
+                  </button>
                 )}
                 {nativePdfUrl && (
-                  <Button 
-                    variant="outline" 
-                    size="sm"
+                  <button 
                     onClick={() => window.open(nativePdfUrl, '_blank')}
-                    className="gap-2 border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-bold"
+                    className="gap-2 border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-bold px-3 py-1.5 rounded-md transition-colors cursor-pointer text-sm"
                   >
                     <Maximize2 className="w-4 h-4" />
                     Open PDF
-                  </Button>
+                  </button>
                 )}
               </div>
             </div>
@@ -419,15 +410,13 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
             </div>
             <div className="flex items-center justify-center gap-2 flex-wrap">
               {answer.pages.map((page, idx) => (
-                <Button
+                <button
                   key={page}
-                  variant={currentPage === page ? "default" : "outline"}
-                  size="sm"
                   onClick={() => setCurrentPage(page)}
-                  className={currentPage === page ? "bg-gradient-to-r from-orange-500 to-purple-600 hover:from-orange-600 hover:to-purple-700 text-white font-bold px-6" : "border-2 border-purple-400 text-purple-700 hover:bg-purple-50 font-bold px-6"}
+                  className={currentPage === page ? "bg-gradient-to-r from-orange-500 to-purple-600 hover:from-orange-600 hover:to-purple-700 text-white font-bold px-6 py-2 rounded-md transition-colors cursor-pointer" : "border-2 border-purple-400 text-purple-700 hover:bg-purple-50 font-bold px-6 py-2 rounded-md transition-colors cursor-pointer"}
                 >
                   Page {page}
-                </Button>
+                </button>
               ))}
             </div>
           </div>
