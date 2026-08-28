@@ -230,7 +230,7 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
           ) : viewerMode === 'native' && nativePdfUrl ? (
             <div className="w-full h-full flex flex-col" style={{ minHeight: '600px' }}>
               <iframe
-                src={nativePdfUrl}
+                src={`${nativePdfUrl}#toolbar=1&navpanes=1&scrollbar=1`}
                 className="w-full h-full border-0 rounded-xl shadow-2xl flex-1 bg-white"
                 title="Answer Sheet PDF"
                 onError={handleNativePdfError}

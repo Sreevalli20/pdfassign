@@ -7,6 +7,8 @@ class Settings(BaseSettings):
     CORS_ORIGINS: List[str] = [
         "https://assign-f5p4.vercel.app",
         "https://pdfassign.onrender.com",
+        "http://localhost:3000",
+        "http://localhost:8000",
         "*"  # Allow all origins for development
     ]
     

@@ -2,6 +2,9 @@ import { AssessmentResult } from "@/types/assessment";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://pdfassign.onrender.com";
 
+// Ensure we're using the production URL
+const PRODUCTION_API_URL = "https://pdfassign.onrender.com";
+
 export async function processAssessment(
   questionPaper: File,
   answerSheet: File
@@ -14,7 +17,7 @@ export async function processAssessment(
   // Store the answer sheet file for later PDF retrieval
   const answerSheetFile = answerSheet;
 
-  const url = `${API_URL}/api/assessment/process`;
+  const url = `${PRODUCTION_API_URL}/api/assessment/process`;
   console.log('[API] POST request to:', url);
   console.log('[API] FormData fields:', Array.from(formData.keys()));
   console.log('[API] Question paper:', questionPaper.name, questionPaper.type, questionPaper.size);
@@ -77,7 +80,7 @@ async function pollForCompletion(assessmentId: string): Promise<AssessmentResult
   while (attempts < maxAttempts) {
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    const url = `${API_URL}/api/assessment/${assessmentId}`;
+    const url = `${PRODUCTION_API_URL}/api/assessment/${assessmentId}`;
     console.log(`[API] Polling attempt ${attempts + 1}/${maxAttempts}:`, url);
     
     const response = await fetch(url);
@@ -103,7 +106,7 @@ async function pollForCompletion(assessmentId: string): Promise<AssessmentResult
 }
 
 export async function getAssessment(assessmentId: string): Promise<AssessmentResult> {
-  const response = await fetch(`${API_URL}/api/assessment/${assessmentId}`);
+  const response = await fetch(`${PRODUCTION_API_URL}/api/assessment/${assessmentId}`);
 
   if (!response.ok) {
     throw new Error("Failed to fetch assessment");
@@ -116,7 +119,7 @@ export async function getAssessment(assessmentId: string): Promise<AssessmentRes
 }
 
 export async function getAnswerSheetPdf(assessmentId: string): Promise<Blob> {
-  const response = await fetch(`${API_URL}/api/assessment/${assessmentId}/answer-sheet`);
+  const response = await fetch(`${PRODUCTION_API_URL}/api/assessment/${assessmentId}/answer-sheet`);
 
   if (!response.ok) {
     throw new Error("Failed to fetch answer sheet PDF");
@@ -126,7 +129,7 @@ export async function getAnswerSheetPdf(assessmentId: string): Promise<Blob> {
 }
 
 export async function getAssessmentStatus(assessmentId: string): Promise<{ assessment_id: string; status: string }> {
-  const response = await fetch(`${API_URL}/api/assessment/${assessmentId}/status`);
+  const response = await fetch(`${PRODUCTION_API_URL}/api/assessment/${assessmentId}/status`);
 
   if (!response.ok) {
     throw new Error("Failed to fetch assessment status");
@@ -136,12 +139,12 @@ export async function getAssessmentStatus(assessmentId: string): Promise<{ asses
 }
 
 export async function healthCheck(): Promise<{ status: string }> {
-  const response = await fetch(`${API_URL}/api/health`);
+  const response = await fetch(`${PRODUCTION_API_URL}/api/health`);
   return response.json();
 }
 
 export async function getAssessmentReport(assessmentId: string): Promise<Blob> {
-  const response = await fetch(`${API_URL}/api/assessment/${assessmentId}/report`);
+  const response = await fetch(`${PRODUCTION_API_URL}/api/assessment/${assessmentId}/report`);
 
   if (!response.ok) {
     throw new Error("Failed to fetch assessment report");
