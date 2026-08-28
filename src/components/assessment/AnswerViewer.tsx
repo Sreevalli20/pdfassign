@@ -98,6 +98,10 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
     setShowTextFallback(true);
   };
 
+  const handleNativePdfLoad = () => {
+    console.log('[AnswerViewer] Native PDF loaded successfully');
+  };
+
   const handlePreviousPage = () => {
     setCurrentPage((prev) => Math.max(1, prev - 1));
   };
@@ -231,9 +235,17 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
                 className="w-full h-full border-0 rounded-xl shadow-2xl flex-1 bg-white"
                 title="Answer Sheet PDF"
                 onError={handleNativePdfError}
-                onLoad={() => console.log('[AnswerViewer] Native PDF loaded successfully')}
+                onLoad={handleNativePdfLoad}
                 style={{ minHeight: '600px' }}
               />
+              <div className="mt-4 text-center">
+                <button
+                  onClick={() => window.open(nativePdfUrl, '_blank')}
+                  className="text-sm text-purple-600 hover:text-purple-800 underline"
+                >
+                  Open PDF in new tab if viewer doesn't load
+                </button>
+              </div>
             </div>
           ) : viewerMode === 'fallback' || showTextFallback ? (
             <div className="flex items-center justify-center p-12 w-full">
@@ -264,6 +276,15 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
                       <Maximize2 className="w-5 h-5" />
                       Open in New Tab
                     </button>
+                    <a
+                      href={`https://pdfassign.onrender.com/api/assessment/${assessmentId}/answer-sheet`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="gap-2 border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-bold px-8 py-2 rounded-md transition-colors cursor-pointer inline-flex items-center justify-center"
+                    >
+                      <Maximize2 className="w-5 h-5" />
+                      Open from Backend
+                    </a>
                   </div>
                 )}
                 
