@@ -10,7 +10,7 @@ interface QuestionListProps {
 }
 
 const statusConfig: Record<
-  QuestionStatus,
+  string,
   { label: string; variant: "success" | "warning" | "destructive"; icon: any; bgColor: string; textColor: string; borderColor: string }
 > = {
   answered: { label: "Correct", variant: "success", icon: CheckCircle2, bgColor: "bg-green-100", textColor: "text-green-800", borderColor: "border-green-400" },
@@ -19,6 +19,10 @@ const statusConfig: Record<
   unanswered: { label: "Unanswered", variant: "destructive", icon: XCircle, bgColor: "bg-gray-100", textColor: "text-gray-800", borderColor: "border-gray-400" },
   needs_review: { label: "Needs Review", variant: "warning", icon: AlertCircle, bgColor: "bg-orange-100", textColor: "text-orange-800", borderColor: "border-orange-400" },
   unable_to_determine: { label: "Unable to Determine", variant: "warning", icon: AlertCircle, bgColor: "bg-gray-100", textColor: "text-gray-800", borderColor: "border-gray-400" },
+};
+
+const getStatusConfig = (status: string) => {
+  return statusConfig[status] || statusConfig.unable_to_determine;
 };
 
 const getConfidenceColor = (confidence: number) => {
@@ -41,7 +45,7 @@ export function QuestionList({
   return (
     <div className="space-y-2">
       {sortedQuestions.map((item) => {
-        const config = statusConfig[item.status];
+        const config = getStatusConfig(item.status);
         const StatusIcon = config.icon;
         const isMultiPageAnswer = item.answer && item.answer.pages.length > 1;
         const isSelected = selectedQuestionId === item.question.id;

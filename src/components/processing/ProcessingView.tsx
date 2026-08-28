@@ -2,7 +2,7 @@ import { Loader2, CheckCircle2, XCircle, Upload, FileText, Brain, Sparkles, Laye
 import { Card } from "@/components/ui/card";
 import { ProcessingStatus } from "@/types/assessment";
 
-const statusConfig: Record<ProcessingStatus, { message: string; icon: any; color: string }> = {
+const statusConfig: Record<string, { message: string; icon: any; color: string }> = {
   uploading: { message: "Uploading documents", icon: Upload, color: "text-[#6D28D9]" },
   reading_question_paper: { message: "Reading question paper", icon: FileText, color: "text-[#6D28D9]" },
   extracting_questions: { message: "Extracting questions", icon: Brain, color: "text-[#7C3AED]" },
@@ -12,6 +12,10 @@ const statusConfig: Record<ProcessingStatus, { message: string; icon: any; color
   preparing_assessment: { message: "Preparing assessment", icon: CheckCircle2, color: "text-[#22C55E]" },
   completed: { message: "Assessment complete!", icon: CheckCircle2, color: "text-[#22C55E]" },
   failed: { message: "Processing failed.", icon: XCircle, color: "text-[#EF4444]" },
+};
+
+const getStatusConfig = (status: string) => {
+  return statusConfig[status] || statusConfig.uploading;
 };
 
 const statusOrder: ProcessingStatus[] = [
@@ -32,7 +36,7 @@ interface ProcessingViewProps {
 export function ProcessingView({ status }: ProcessingViewProps) {
   const isComplete = status === "completed";
   const isFailed = status === "failed";
-  const config = statusConfig[status];
+  const config = getStatusConfig(status);
   const StatusIcon = config.icon;
   const currentIndex = statusOrder.indexOf(status);
 
@@ -75,7 +79,7 @@ export function ProcessingView({ status }: ProcessingViewProps) {
             {statusOrder.slice(0, -1).map((step, index) => {
               const isCurrent = step === status;
               const isPast = index < currentIndex;
-              const stepConfig = statusConfig[step];
+              const stepConfig = getStatusConfig(step);
               const StepIcon = stepConfig.icon;
               
               return (

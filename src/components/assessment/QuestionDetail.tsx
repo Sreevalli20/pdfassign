@@ -20,6 +20,10 @@ const statusConfig: Record<
   unable_to_determine: { label: "Unable to Determine", variant: "warning", icon: AlertTriangle, bgColor: "bg-gray-100", textColor: "text-gray-800", borderColor: "border-gray-400" },
 };
 
+const getStatusConfig = (status: string) => {
+  return statusConfig[status] || statusConfig.unable_to_determine;
+};
+
 const confidenceLabel = (confidence: number) => {
   if (confidence >= 0.9) return "High confidence";
   if (confidence >= 0.7) return "Medium confidence";
@@ -34,7 +38,7 @@ const confidenceColor = (confidence: number) => {
 
 export function QuestionDetail({ questionWithStatus }: QuestionDetailProps) {
   const { question, status, mapping, answer } = questionWithStatus;
-  const config = statusConfig[status];
+  const config = getStatusConfig(status);
   const StatusIcon = config.icon;
 
   return (

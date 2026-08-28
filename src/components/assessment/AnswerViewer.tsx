@@ -71,7 +71,7 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
 
   // Auto-navigate to the first page of the answer when answer changes
   useEffect(() => {
-    if (answer && answer.pages.length > 0) {
+    if (answer && answer.pages && answer.pages.length > 0) {
       setCurrentPage(answer.pages[0]);
     }
   }, [answer]);
@@ -132,13 +132,13 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
   };
 
   const getCurrentRegion = () => {
-    if (!answer) return null;
+    if (!answer || !answer.regions) return null;
     return answer.regions.find((r) => r.page === currentPage);
   };
 
   const region = getCurrentRegion();
-  const isMultiPage = answer && answer.pages.length > 1;
-  const currentPageIndex = answer ? answer.pages.indexOf(currentPage) : -1;
+  const isMultiPage = answer && answer.pages && answer.pages.length > 1;
+  const currentPageIndex = answer && answer.pages ? answer.pages.indexOf(currentPage) : -1;
 
   return (
     <Card className="flex flex-col shadow-xl border-2 border-purple-300 rounded-2xl overflow-hidden" style={{ minHeight: '800px' }}>
@@ -397,7 +397,7 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
               {answer.text || "No answer text available"}
             </div>
             
-            {isMultiPage && (
+            {isMultiPage && answer.pages && (
               <div className="mt-4 flex items-center gap-2">
                 <Badge variant="outline" className="text-sm font-bold border-purple-500 text-purple-700">
                   Pages: {answer.pages.join(", ")}
@@ -408,7 +408,7 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
         )}
         
         {/* Multi-page navigation */}
-        {isMultiPage && (
+        {isMultiPage && answer.pages && (
           <div className="mb-4">
             <div className="flex items-center justify-between mb-4">
               <p className="text-base font-bold text-[#18181B]">Answer spans {answer.pages.length} pages</p>

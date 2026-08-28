@@ -316,7 +316,7 @@ export default function Home() {
               <Card className="border-2 border-green-400 shadow-md bg-white border-t-4 border-t-green-600">
                 <CardContent className="p-4">
                   <div className="text-3xl font-extrabold text-green-700">
-                    {assessment.questions.filter(q => q.status === "answered").length}
+                    {assessment.questions.filter(q => q.status && q.status === "answered").length}
                   </div>
                   <div className="text-sm font-bold text-green-600 mt-1">Correct</div>
                 </CardContent>
@@ -324,7 +324,7 @@ export default function Home() {
               <Card className="border-2 border-orange-400 shadow-md bg-white border-t-4 border-t-[#F97316]">
                 <CardContent className="p-4">
                   <div className="text-3xl font-extrabold text-[#F97316]">
-                    {assessment.questions.filter(q => q.status === "partially_correct").length}
+                    {assessment.questions.filter(q => q.status && q.status === "partially_correct").length}
                   </div>
                   <div className="text-sm font-bold text-[#F97316] mt-1">Partial</div>
                 </CardContent>
@@ -332,7 +332,7 @@ export default function Home() {
               <Card className="border-2 border-red-400 shadow-md bg-white border-t-4 border-t-red-600">
                 <CardContent className="p-4">
                   <div className="text-3xl font-extrabold text-red-700">
-                    {assessment.questions.filter(q => q.status === "incorrect").length}
+                    {assessment.questions.filter(q => q.status && q.status === "incorrect").length}
                   </div>
                   <div className="text-sm font-bold text-red-600 mt-1">Incorrect</div>
                 </CardContent>
@@ -344,7 +344,7 @@ export default function Home() {
               <Card className="border-2 border-gray-300 shadow-md bg-white border-t-4 border-t-gray-500">
                 <CardContent className="p-4">
                   <div className="text-3xl font-extrabold text-gray-700">
-                    {assessment.questions.filter(q => q.status === "unanswered").length}
+                    {assessment.questions.filter(q => q.status && q.status === "unanswered").length}
                   </div>
                   <div className="text-sm font-bold text-gray-600 mt-1">Unanswered</div>
                 </CardContent>
@@ -352,7 +352,7 @@ export default function Home() {
               <Card className="border-2 border-purple-400 shadow-md bg-white border-t-4 border-[#6D28D9]">
                 <CardContent className="p-4">
                   <div className="text-3xl font-extrabold text-[#6D28D9]">
-                    {assessment.questions.filter(q => q.status === "unable_to_determine").length}
+                    {assessment.questions.filter(q => q.status && q.status === "unable_to_determine").length}
                   </div>
                   <div className="text-sm font-bold text-[#6D28D9] mt-1">Unable to Determine</div>
                 </CardContent>
@@ -372,7 +372,7 @@ export default function Home() {
               <Card className="border-2 border-green-300 shadow-md bg-white border-t-4 border-t-green-600">
                 <CardContent className="p-4">
                   <div className="text-3xl font-extrabold text-green-700">
-                    {assessment.completeness_analysis?.completion_rate.toFixed(1) || "0"}%
+                    {assessment.completeness_analysis?.completion_rate ? assessment.completeness_analysis.completion_rate.toFixed(1) : "0"}%
                   </div>
                   <div className="text-sm font-bold text-green-600 mt-1">Completion Rate</div>
                 </CardContent>
