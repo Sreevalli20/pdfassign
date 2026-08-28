@@ -9,11 +9,11 @@ interface QuestionDetailProps {
 
 const statusConfig: Record<
   string,
-  { label: string; variant: "success" | "warning" | "destructive"; icon: any; bgColor: string; textColor: string }
+  { label: string; variant: "success" | "warning" | "destructive"; icon: any; bgColor: string; textColor: string; borderColor: string }
 > = {
-  answered: { label: "Answered", variant: "success", icon: CheckCircle2, bgColor: "bg-green-50", textColor: "text-green-700" },
-  unanswered: { label: "Unanswered", variant: "destructive", icon: XCircle, bgColor: "bg-red-50", textColor: "text-red-700" },
-  needs_review: { label: "Needs Review", variant: "warning", icon: AlertTriangle, bgColor: "bg-yellow-50", textColor: "text-yellow-700" },
+  answered: { label: "Answered", variant: "success", icon: CheckCircle2, bgColor: "bg-green-100", textColor: "text-green-800", borderColor: "border-green-400" },
+  unanswered: { label: "Unanswered", variant: "destructive", icon: XCircle, bgColor: "bg-red-100", textColor: "text-red-800", borderColor: "border-red-400" },
+  needs_review: { label: "Needs Review", variant: "warning", icon: AlertTriangle, bgColor: "bg-orange-100", textColor: "text-orange-800", borderColor: "border-orange-400" },
 };
 
 const confidenceLabel = (confidence: number) => {
@@ -36,14 +36,14 @@ export function QuestionDetail({ questionWithStatus }: QuestionDetailProps) {
   return (
     <div className="space-y-4">
       {/* Status Card */}
-      <div className={`${config.bgColor} border-2 rounded-lg p-4`}>
+      <div className={`${config.bgColor} ${config.borderColor} border-2 rounded-lg p-4`}>
         <div className="flex items-center gap-2 mb-2">
           <StatusIcon className={`w-5 h-5 ${config.textColor}`} />
-          <span className={`font-semibold ${config.textColor}`}>
+          <span className={`font-bold ${config.textColor}`}>
             {config.label}
           </span>
         </div>
-        <p className={`text-sm ${config.textColor}`}>
+        <p className={`text-sm ${config.textColor} font-medium`}>
           {status === "answered" && "An answer was found and mapped to this question."}
           {status === "unanswered" && "No answer was found for this question."}
           {status === "needs_review" && "This answer may need manual review."}
@@ -52,16 +52,16 @@ export function QuestionDetail({ questionWithStatus }: QuestionDetailProps) {
 
       {/* Question Info */}
       <div className="space-y-3">
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <FileText className="w-4 h-4" />
-          <span className="font-medium">Question {question.number}</span>
+        <div className="flex items-center gap-2 text-sm text-[#6B6480]">
+          <FileText className="w-4 h-4 text-purple-600" />
+          <span className="font-bold">Question {question.number}</span>
           {question.sub_part && (
-            <Badge variant="outline" className="text-xs">
+            <Badge variant="outline" className="text-xs bg-white border-purple-300 text-purple-700 font-semibold">
               {question.sub_part.toUpperCase()}
             </Badge>
           )}
         </div>
-        <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg">
+        <p className="text-sm text-[#18122B] bg-gradient-to-r from-purple-50 to-orange-50 p-3 rounded-lg border border-purple-200 font-medium">
           {question.text}
         </p>
       </div>
@@ -69,11 +69,11 @@ export function QuestionDetail({ questionWithStatus }: QuestionDetailProps) {
       {/* Mapping Confidence */}
       {mapping && (
         <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <BarChart3 className="w-4 h-4" />
-            <span className="font-medium">Mapping Confidence</span>
+          <div className="flex items-center gap-2 text-sm text-[#6B6480]">
+            <BarChart3 className="w-4 h-4 text-purple-600" />
+            <span className="font-bold">Mapping Confidence</span>
           </div>
-          <div className="bg-gray-100 rounded-lg p-3">
+          <div className="bg-gradient-to-r from-purple-50 to-orange-50 rounded-lg p-3 border border-purple-200">
             <div className="flex items-center gap-3 mb-2">
               <div className="flex-1 bg-gray-200 rounded-full h-2">
                 <div
@@ -81,11 +81,11 @@ export function QuestionDetail({ questionWithStatus }: QuestionDetailProps) {
                   style={{ width: `${mapping.confidence * 100}%` }}
                 />
               </div>
-              <span className="text-sm font-semibold text-gray-700">
+              <span className="text-sm font-bold text-[#18122B]">
                 {Math.round(mapping.confidence * 100)}%
               </span>
             </div>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-[#6B6480] font-medium">
               {confidenceLabel(mapping.confidence)}
             </p>
           </div>
@@ -95,24 +95,24 @@ export function QuestionDetail({ questionWithStatus }: QuestionDetailProps) {
       {/* Answer Info */}
       {answer && (
         <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <MapPin className="w-4 h-4" />
-            <span className="font-medium">Answer Location</span>
+          <div className="flex items-center gap-2 text-sm text-[#6B6480]">
+            <MapPin className="w-4 h-4 text-purple-600" />
+            <span className="font-bold">Answer Location</span>
           </div>
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <div className="bg-gradient-to-r from-purple-50 to-orange-50 border-2 border-purple-300 rounded-lg p-3">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-blue-900">
+              <span className="text-sm font-bold text-[#18122B]">
                 Answer {answer.label}
               </span>
-              <Badge variant="outline" className="text-xs bg-white">
+              <Badge variant="outline" className="text-xs bg-white border-purple-300 text-purple-700 font-semibold">
                 {answer.pages.length} page{answer.pages.length > 1 ? "s" : ""}
               </Badge>
             </div>
-            <p className="text-xs text-blue-700 mb-2">
+            <p className="text-xs text-[#6B6480] mb-2 font-medium">
               Pages: {answer.pages.join(", ")}
             </p>
             {answer.text && (
-              <p className="text-xs text-blue-600 bg-white p-2 rounded border border-blue-100">
+              <p className="text-xs text-[#18122B] bg-white p-2 rounded border border-purple-200 font-medium">
                 {answer.text}
               </p>
             )}

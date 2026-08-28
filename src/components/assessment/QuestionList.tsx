@@ -11,11 +11,11 @@ interface QuestionListProps {
 
 const statusConfig: Record<
   QuestionStatus,
-  { label: string; variant: "success" | "warning" | "destructive"; icon: any; bgColor: string; textColor: string }
+  { label: string; variant: "success" | "warning" | "destructive"; icon: any; bgColor: string; textColor: string; borderColor: string }
 > = {
-  answered: { label: "Answered", variant: "success", icon: CheckCircle2, bgColor: "bg-green-50", textColor: "text-green-700" },
-  unanswered: { label: "Unanswered", variant: "destructive", icon: XCircle, bgColor: "bg-red-50", textColor: "text-red-700" },
-  needs_review: { label: "Needs Review", variant: "warning", icon: AlertCircle, bgColor: "bg-yellow-50", textColor: "text-yellow-700" },
+  answered: { label: "Answered", variant: "success", icon: CheckCircle2, bgColor: "bg-green-100", textColor: "text-green-800", borderColor: "border-green-400" },
+  unanswered: { label: "Unanswered", variant: "destructive", icon: XCircle, bgColor: "bg-red-100", textColor: "text-red-800", borderColor: "border-red-400" },
+  needs_review: { label: "Needs Review", variant: "warning", icon: AlertCircle, bgColor: "bg-orange-100", textColor: "text-orange-800", borderColor: "border-orange-400" },
 };
 
 const getConfidenceColor = (confidence: number) => {
@@ -46,46 +46,46 @@ export function QuestionList({
         return (
           <Card
             key={item.question.id}
-            className={`p-3 cursor-pointer transition-all hover:shadow-md border-2 rounded-lg ${
+            className={`p-3 cursor-pointer transition-all hover:shadow-lg border-2 rounded-lg ${
               isSelected
-                ? "border-blue-500 bg-blue-50 shadow-md"
-                : "border-gray-200 hover:border-gray-300"
+                ? "border-gradient-to-r from-orange-500 to-purple-600 bg-gradient-to-r from-orange-50 to-purple-50 shadow-lg"
+                : "border-purple-300 hover:border-orange-400 hover:bg-orange-50"
             }`}
             onClick={() => onSelectQuestion(item.question.id)}
           >
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center ${config.bgColor}`}>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center ${config.bgColor} ${config.borderColor} border`}>
                     <StatusIcon className={`w-3.5 h-3.5 ${config.textColor}`} />
                   </div>
-                  <p className="font-semibold text-sm text-gray-900">
+                  <p className="font-bold text-sm text-[#18122B]">
                     {item.question.number}
                   </p>
                   {item.question.sub_part && (
-                    <Badge variant="outline" className="text-xs h-5 bg-white border-gray-200">
+                    <Badge variant="outline" className="text-xs h-5 bg-white border-purple-300 text-purple-700 font-semibold">
                       {item.question.sub_part.toUpperCase()}
                     </Badge>
                   )}
                 </div>
-                <p className="text-xs text-gray-600 line-clamp-2 mb-2">
+                <p className="text-xs text-[#6B6480] line-clamp-2 mb-2 font-medium">
                   {item.question.text}
                 </p>
                 
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className={`text-xs font-medium ${config.textColor}`}>
+                  <span className={`text-xs font-bold ${config.textColor}`}>
                     {config.label}
                   </span>
                   
                   {item.answer && (
-                    <Badge variant="outline" className="text-xs bg-white border-gray-200">
+                    <Badge variant="outline" className="text-xs bg-white border-purple-300 text-purple-700 font-semibold">
                       Page {item.answer.pages[0]}
                       {isMultiPageAnswer && ` +${item.answer.pages.length - 1}`}
                     </Badge>
                   )}
                 </div>
               </div>
-              <ChevronRight className={`w-4 h-4 flex-shrink-0 mt-1 ${isSelected ? "text-blue-600" : "text-gray-400"}`} />
+              <ChevronRight className={`w-4 h-4 flex-shrink-0 mt-1 ${isSelected ? "text-purple-600" : "text-[#6B6480]"}`} />
             </div>
           </Card>
         );

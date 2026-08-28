@@ -156,12 +156,12 @@ export function FileUpload({
   };
 
   return (
-    <Card className="border border-gray-200 shadow-sm rounded-2xl overflow-hidden">
+    <Card className="border-2 border-purple-200 shadow-lg rounded-2xl overflow-hidden bg-white hover:shadow-xl transition-shadow">
       <div className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+          <h3 className="text-lg font-bold text-[#18122B]">{title}</h3>
           {isCompressing ? (
-            <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
+            <Loader2 className="w-5 h-5 text-purple-600 animate-spin" />
           ) : file && (
             <CheckCircle2 className="w-5 h-5 text-green-600" />
           )}
@@ -171,8 +171,8 @@ export function FileUpload({
           <div
             className={`border-2 border-dashed rounded-xl p-10 text-center transition-all ${
               isDragging
-                ? "border-blue-500 bg-blue-50"
-                : "border-gray-300 hover:border-gray-400 hover:bg-gray-50"
+                ? "border-orange-500 bg-orange-50"
+                : "border-purple-300 hover:border-orange-400 hover:bg-orange-50"
             }`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -190,37 +190,41 @@ export function FileUpload({
               className="cursor-pointer flex flex-col items-center"
             >
               <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
-                isDragging ? "bg-blue-100" : "bg-gray-100"
+                isDragging ? "bg-orange-100" : "bg-gradient-to-br from-orange-100 to-purple-100"
               }`}>
-                <Upload className={`w-8 h-8 ${isDragging ? "text-blue-600" : "text-gray-400"}`} />
+                <Upload className={`w-8 h-8 ${isDragging ? "text-orange-600" : "text-purple-600"}`} />
               </div>
-              <p className="text-sm font-medium text-gray-700 mb-1">
+              <p className="text-sm font-bold text-[#18122B] mb-1">
                 {description}
               </p>
-              <p className="text-xs text-gray-500 mb-4">
+              <p className="text-xs text-[#6B6480] mb-4">
                 PDF, PNG, JPG
               </p>
-              <Button variant="outline" size="sm" className="rounded-lg">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="rounded-lg border-purple-400 text-purple-700 hover:bg-gradient-to-r hover:from-orange-500 hover:to-purple-600 hover:text-white hover:border-transparent font-semibold"
+              >
                 Browse files
               </Button>
             </label>
           </div>
         ) : (
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-4">
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl p-4">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-sm">
                   {file.type.includes("pdf") ? (
                     <FileText className="w-6 h-6 text-red-500" />
                   ) : (
-                    <ImageIcon className="w-6 h-6 text-blue-500" />
+                    <ImageIcon className="w-6 h-6 text-purple-500" />
                   )}
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900 truncate max-w-[200px]">
+                  <p className="text-sm font-bold text-[#18122B] truncate max-w-[200px]">
                     {file.name}
                   </p>
-                  <p className="text-xs text-gray-600">
+                  <p className="text-xs text-[#6B6480]">
                     {formatFileSize(file.size)} • {file.type.split("/")[1].toUpperCase()}
                     {originalSize && originalSize !== file.size && (
                       <span className="text-green-600 ml-1">
@@ -237,7 +241,7 @@ export function FileUpload({
                   onClick={() => {
                     onFileRemove();
                   }}
-                  className="h-8 w-8 hover:bg-blue-100 hover:text-blue-600"
+                  className="h-8 w-8 hover:bg-purple-100 hover:text-purple-600"
                   title="Replace file"
                 >
                   <RefreshCw className="w-4 h-4" />

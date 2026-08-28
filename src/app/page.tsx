@@ -127,34 +127,45 @@ export default function Home() {
   );
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-[#FAF7FF]">
       {/* Header */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
+      <header className="bg-white border-b border-purple-100 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
                 <Brain className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">VedaAI</h1>
-                <p className="text-xs text-gray-500 font-medium">AI Assessment Review</p>
+                <h1 className="text-xl font-bold text-[#18122B]">VedaAI</h1>
+                <p className="text-xs text-[#6B6480] font-medium">AI Assessment Review</p>
+              </div>
+              <div className="ml-2 bg-gradient-to-r from-orange-500 to-purple-600 text-white text-xs px-2 py-1 rounded-full font-medium">
+                AI
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" className="text-gray-500 hover:text-gray-700">
+              <Button variant="ghost" size="icon" className="text-[#6B6480] hover:text-[#18122B]">
                 <HelpCircle className="w-5 h-5" />
               </Button>
-              <Button variant="ghost" size="icon" className="text-gray-500 hover:text-gray-700">
+              <Button variant="ghost" size="icon" className="text-[#6B6480] hover:text-[#18122B]">
                 <Settings className="w-5 h-5" />
               </Button>
               {assessment && (
                 <>
-                  <Button variant="outline" onClick={handleDownloadReport} className="gap-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={handleDownloadReport} 
+                    className="gap-2 border-purple-300 text-purple-700 hover:bg-purple-50"
+                  >
                     <Download className="w-4 h-4" />
                     Download Report
                   </Button>
-                  <Button variant="outline" onClick={handleReset} className="gap-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={handleReset} 
+                    className="gap-2 border-purple-300 text-purple-700 hover:bg-purple-50"
+                  >
                     <ArrowLeft className="w-4 h-4" />
                     Back to Upload
                   </Button>
@@ -170,16 +181,15 @@ export default function Home() {
           <div className="max-w-5xl mx-auto">
             {/* Hero Section */}
             <div className="text-center mb-16">
-              <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-100 to-purple-100 text-purple-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
                 <Brain className="w-4 h-4" />
                 AI-Powered Assessment Review
               </div>
-              <h1 className="text-5xl font-bold text-gray-900 mb-6 tracking-tight leading-tight">
-                Transform Grading with Intelligent Assessment Analysis
+              <h1 className="text-5xl font-bold text-[#18122B] mb-6 tracking-tight leading-tight">
+                AI-Powered Assessment Review
               </h1>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                Upload your question papers and student answer sheets. Our AI extracts questions, 
-                maps answers, and provides detailed grading insights in seconds.
+              <p className="text-xl text-[#6B6480] max-w-3xl mx-auto leading-relaxed">
+                Upload question papers and answer sheets, automatically map answers, review evidence, and generate an assessment report.
               </p>
             </div>
 
@@ -223,7 +233,7 @@ export default function Home() {
                   onClick={handleProcess}
                   disabled={!questionPaper || !answerSheet}
                   size="lg"
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-16 py-6 text-lg font-semibold shadow-xl rounded-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transition-all"
+                  className="bg-gradient-to-r from-orange-500 to-purple-600 hover:from-orange-600 hover:to-purple-700 text-white px-16 py-6 text-lg font-semibold shadow-xl rounded-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transition-all"
                 >
                   <Sparkles className="w-5 h-5 mr-2" />
                   Process Assessment
@@ -233,39 +243,39 @@ export default function Home() {
             </div>
 
             {/* Value Preview Section */}
-            <div className="border-t border-gray-100 pt-16">
+            <div className="border-t border-purple-100 pt-16">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div className="text-center">
-                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <Upload className="w-6 h-6 text-blue-600" />
+                  <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <Upload className="w-6 h-6 text-orange-600" />
                   </div>
-                  <div className="text-sm font-semibold text-gray-400 mb-2">01</div>
-                  <h3 className="font-semibold text-gray-900 mb-1">Extract Questions</h3>
-                  <p className="text-sm text-gray-500">AI reads your question paper</p>
+                  <div className="text-sm font-semibold text-[#6B6480] mb-2">01</div>
+                  <h3 className="font-semibold text-[#18122B] mb-1">Extract Questions</h3>
+                  <p className="text-sm text-[#6B6480]">AI reads your question paper</p>
                 </div>
                 <div className="text-center">
-                  <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <Search className="w-6 h-6 text-indigo-600" />
+                  <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <Search className="w-6 h-6 text-purple-600" />
                   </div>
-                  <div className="text-sm font-semibold text-gray-400 mb-2">02</div>
-                  <h3 className="font-semibold text-gray-900 mb-1">Map Answers</h3>
-                  <p className="text-sm text-gray-500">Match answers to questions</p>
+                  <div className="text-sm font-semibold text-[#6B6480] mb-2">02</div>
+                  <h3 className="font-semibold text-[#18122B] mb-1">Map Answers</h3>
+                  <p className="text-sm text-[#6B6480]">Match answers to questions</p>
                 </div>
                 <div className="text-center">
                   <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-4">
                     <Highlighter className="w-6 h-6 text-purple-600" />
                   </div>
-                  <div className="text-sm font-semibold text-gray-400 mb-2">03</div>
-                  <h3 className="font-semibold text-gray-900 mb-1">Highlight Evidence</h3>
-                  <p className="text-sm text-gray-500">See exact answer regions</p>
+                  <div className="text-sm font-semibold text-[#6B6480] mb-2">03</div>
+                  <h3 className="font-semibold text-[#18122B] mb-1">Highlight Evidence</h3>
+                  <p className="text-sm text-[#6B6480]">See exact answer regions</p>
                 </div>
                 <div className="text-center">
                   <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-4">
                     <CheckCircle className="w-6 h-6 text-green-600" />
                   </div>
-                  <div className="text-sm font-semibold text-gray-400 mb-2">04</div>
-                  <h3 className="font-semibold text-gray-900 mb-1">Review Assessment</h3>
-                  <p className="text-sm text-gray-500">Navigate and grade easily</p>
+                  <div className="text-sm font-semibold text-[#6B6480] mb-2">04</div>
+                  <h3 className="font-semibold text-[#18122B] mb-1">Review Assessment</h3>
+                  <p className="text-sm text-[#6B6480]">Navigate and grade easily</p>
                 </div>
               </div>
             </div>
@@ -301,19 +311,19 @@ export default function Home() {
           <div>
             {/* Assessment Header */}
             <div className="mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Assessment Review</h2>
-              <p className="text-gray-600">Review and grade student answers with AI-powered insights</p>
+              <h2 className="text-3xl font-bold text-[#18122B] mb-2">Assessment Review</h2>
+              <p className="text-[#6B6480]">Review and grade student answers with AI-powered insights</p>
             </div>
 
             {/* Summary Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              <Card className="border-0 shadow-sm bg-gray-50">
+              <Card className="border-0 shadow-sm bg-white border-t-4 border-t-purple-600">
                 <CardContent className="p-4">
-                  <div className="text-2xl font-bold text-gray-900">{assessment.questions.length}</div>
-                  <div className="text-sm text-gray-500">Questions</div>
+                  <div className="text-2xl font-bold text-[#18122B]">{assessment.questions.length}</div>
+                  <div className="text-sm text-[#6B6480]">Questions</div>
                 </CardContent>
               </Card>
-              <Card className="border-0 shadow-sm bg-green-50">
+              <Card className="border-0 shadow-sm bg-white border-t-4 border-t-green-600">
                 <CardContent className="p-4">
                   <div className="text-2xl font-bold text-green-700">
                     {assessment.questions.filter(q => q.status === "answered").length}
@@ -321,15 +331,15 @@ export default function Home() {
                   <div className="text-sm text-green-600">Answered</div>
                 </CardContent>
               </Card>
-              <Card className="border-0 shadow-sm bg-yellow-50">
+              <Card className="border-0 shadow-sm bg-white border-t-4 border-t-red-600">
                 <CardContent className="p-4">
-                  <div className="text-2xl font-bold text-yellow-700">
+                  <div className="text-2xl font-bold text-red-700">
                     {assessment.questions.filter(q => q.status === "unanswered").length}
                   </div>
-                  <div className="text-sm text-yellow-600">Unanswered</div>
+                  <div className="text-sm text-red-600">Unanswered</div>
                 </CardContent>
               </Card>
-              <Card className="border-0 shadow-sm bg-orange-50">
+              <Card className="border-0 shadow-sm bg-white border-t-4 border-t-orange-600">
                 <CardContent className="p-4">
                   <div className="text-2xl font-bold text-orange-700">
                     {assessment.questions.filter(q => q.status === "needs_review").length}

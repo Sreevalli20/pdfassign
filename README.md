@@ -97,7 +97,7 @@ AI_PROVIDER=openai
 DEMO_MODE=true  # Set to false to use real AI processing
 
 # Frontend
-NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_API_URL=https://pdfassign.onrender.com
 ```
 
 ## Demo Mode
