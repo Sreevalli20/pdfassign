@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useRef } from "react";
 import { Upload, X, FileText, Image as ImageIcon, CheckCircle2, RefreshCw, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -24,6 +24,50 @@ export function FileUpload({
   const [isDragging, setIsDragging] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
   const [originalSize, setOriginalSize] = useState<number | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = (selectedFile: File) => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    processFile(selectedFile);
+  };
+
+  const processFile = async (selectedFile: File) => {
+    // Validate file type
+    const validTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg'];
+    if (!validTypes.includes(selectedFile.type)) {
+      alert('Please upload a PDF or image file (PNG, JPG).');
+      return;
+    }
+    
+    // Validate file size (max 15MB for backend compatibility)
+    const maxSize = 15 * 1024 * 1024;
+    if (selectedFile.size > maxSize) {
+      alert(`File size must be less than ${maxSize / (1024 * 1024)}MB.`);
+      return;
+    }
+    
+    setOriginalSize(selectedFile.size);
+    setIsCompressing(true);
+    
+    try {
+      let processedFile: File;
+      if (selectedFile.type === 'application/pdf') {
+        processedFile = await compressPDF(selectedFile);
+      } else {
+        processedFile = await compressImage(selectedFile);
+      }
+      
+      onFileSelect(processedFile);
+    } catch (error) {
+      console.error('File processing failed:', error);
+      alert('Failed to process file. Please try again.');
+    } finally {
+      setIsCompressing(false);
+      setOriginalSize(null);
+    }
+  };
 
   const compressPDF = async (file: File): Promise<File> => {
     // For PDFs, we can't easily compress in browser without libraries
@@ -85,67 +129,31 @@ export function FileUpload({
     });
   };
 
-  const processFile = async (selectedFile: File) => {
-    // Validate file type
-    const validTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg'];
-    if (!validTypes.includes(selectedFile.type)) {
-      alert('Please upload a PDF or image file (PNG, JPG).');
-      return;
-    }
-    
-    // Validate file size (max 15MB for backend compatibility)
-    const maxSize = 15 * 1024 * 1024;
-    if (selectedFile.size > maxSize) {
-      alert(`File size must be less than ${maxSize / (1024 * 1024)}MB.`);
-      return;
-    }
-    
-    setOriginalSize(selectedFile.size);
-    setIsCompressing(true);
-    
-    try {
-      let processedFile: File;
-      if (selectedFile.type === 'application/pdf') {
-        processedFile = await compressPDF(selectedFile);
-      } else {
-        processedFile = await compressImage(selectedFile);
-      }
-      
-      onFileSelect(processedFile);
-    } catch (error) {
-      console.error('File processing failed:', error);
-      alert('Failed to process file. Please try again.');
-    } finally {
-      setIsCompressing(false);
-      setOriginalSize(null);
-    }
-  };
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      processFile(selectedFile);
+      handleFileSelect(selectedFile);
     }
   };
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
+  const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
-  }, []);
+  };
 
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
+  const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-  }, []);
+  };
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile) {
-      processFile(droppedFile);
+      handleFileSelect(droppedFile);
     }
-  }, [onFileSelect]);
+  };
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return "0 Bytes";
@@ -180,15 +188,12 @@ export function FileUpload({
           >
             <input
               type="file"
-              id={`file-${title}`}
+              ref={fileInputRef}
               className="hidden"
               onChange={handleFileChange}
               accept={accept}
             />
-            <label
-              htmlFor={`file-${title}`}
-              className="cursor-pointer flex flex-col items-center"
-            >
+            <div className="flex flex-col items-center">
               <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
                 isDragging ? "bg-orange-100" : "bg-gradient-to-br from-orange-100 to-purple-100"
               }`}>
@@ -201,13 +206,20 @@ export function FileUpload({
                 PDF, PNG, JPG
               </p>
               <Button 
+                type="button"
                 variant="outline" 
                 size="sm" 
                 className="rounded-lg border-purple-400 text-purple-700 hover:bg-gradient-to-r hover:from-orange-500 hover:to-purple-600 hover:text-white hover:border-transparent font-semibold"
+                onClick={() => {
+                  if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                    fileInputRef.current.click();
+                  }
+                }}
               >
                 Browse files
               </Button>
-            </label>
+            </div>
           </div>
         ) : (
           <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl p-4">
@@ -239,7 +251,10 @@ export function FileUpload({
                   variant="ghost"
                   size="icon"
                   onClick={() => {
-                    onFileRemove();
+                    if (fileInputRef.current) {
+                      fileInputRef.current.value = '';
+                      fileInputRef.current.click();
+                    }
                   }}
                   className="h-8 w-8 hover:bg-purple-100 hover:text-purple-600"
                   title="Replace file"

@@ -16,7 +16,7 @@ import {
   ProcessingStatus,
 } from "@/types/assessment";
 import { processAssessment, getAssessment, getAssessmentReport } from "@/lib/api";
-import { Brain, FileText, Sparkles, ArrowLeft, Settings, HelpCircle, Upload, Search, Highlighter, CheckCircle, Download, ChevronRight } from "lucide-react";
+import { Brain, FileText, Sparkles, ArrowLeft, Settings, HelpCircle, Upload, Search, Highlighter, CheckCircle, Download, ChevronRight, Loader2, CheckCircle2 } from "lucide-react";
 import dynamic from "next/dynamic";
 
 const AnswerViewer = dynamic(() => import("@/components/assessment/AnswerViewer").then(mod => ({ default: mod.AnswerViewer })), {
@@ -127,25 +127,30 @@ export default function Home() {
   );
 
   return (
-    <main className="min-h-screen bg-[#FAF7FF]">
+    <main className="min-h-screen bg-[#FAF9FC]">
       {/* Header */}
-      <header className="bg-white border-b border-purple-100 sticky top-0 z-50">
+      <header className="bg-white border-b-2 border-purple-200 sticky top-0 z-50 shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center">
-                <span className="text-2xl font-bold text-[#5B21B6]">Veda</span>
-                <span className="text-2xl font-bold text-[#F97316]">AI</span>
-              </div>
-              <div className="ml-3 border-l border-purple-200 pl-3">
-                <p className="text-sm font-medium text-[#6B6480]">AI Assessment Review</p>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-14 h-14 bg-gradient-to-br from-[#6D28D9] to-[#F97316] rounded-xl flex items-center justify-center shadow-xl border-2 border-purple-300">
+                  <Brain className="w-8 h-8 text-white" />
+                </div>
+                <div className="flex flex-col">
+                  <div className="flex items-baseline">
+                    <span className="text-4xl font-extrabold text-[#6D28D9] tracking-tight">Veda</span>
+                    <span className="text-4xl font-extrabold text-[#F97316] tracking-tight">AI</span>
+                  </div>
+                  <p className="text-sm font-bold text-[#6B6480] tracking-wide uppercase">AI Assessment Review</p>
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" className="text-[#6B6480] hover:text-[#7C3AED]">
+              <Button variant="ghost" size="icon" className="text-[#6B6480] hover:text-[#7C3AED] hover:bg-purple-50 border border-transparent hover:border-purple-200">
                 <HelpCircle className="w-5 h-5" />
               </Button>
-              <Button variant="ghost" size="icon" className="text-[#6B6480] hover:text-[#7C3AED]">
+              <Button variant="ghost" size="icon" className="text-[#6B6480] hover:text-[#7C3AED] hover:bg-purple-50 border border-transparent hover:border-purple-200">
                 <Settings className="w-5 h-5" />
               </Button>
               {assessment && (
@@ -153,7 +158,7 @@ export default function Home() {
                   <Button 
                     variant="outline" 
                     onClick={handleDownloadReport} 
-                    className="gap-2 border-purple-400 text-purple-700 hover:bg-purple-50 font-semibold"
+                    className="gap-2 border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-bold shadow-sm hover:shadow-md"
                   >
                     <Download className="w-4 h-4" />
                     Download Report
@@ -161,7 +166,7 @@ export default function Home() {
                   <Button 
                     variant="outline" 
                     onClick={handleReset} 
-                    className="gap-2 border-purple-400 text-purple-700 hover:bg-purple-50 font-semibold"
+                    className="gap-2 border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-bold shadow-sm hover:shadow-md"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     Back to Upload
@@ -175,18 +180,18 @@ export default function Home() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {!assessment && !isProcessing && (
-          <div className="max-w-5xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             {/* Hero Section */}
             <div className="text-center mb-16">
-              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-100 to-purple-100 text-purple-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
-                <Brain className="w-4 h-4" />
+              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-100 to-purple-100 text-purple-700 px-6 py-3 rounded-full text-sm font-bold mb-8 border-2 border-purple-300 shadow-sm">
+                <Brain className="w-5 h-5" />
                 AI-Powered Assessment Review
               </div>
-              <h1 className="text-5xl font-bold text-[#18122B] mb-6 tracking-tight leading-tight">
-                AI-Powered Assessment Review
+              <h1 className="text-5xl md:text-7xl font-extrabold text-[#18122B] mb-8 tracking-tight leading-tight">
+                <span className="text-[#6D28D9]">AI-Powered</span> Assessment Review
               </h1>
-              <p className="text-xl text-[#6B6480] max-w-3xl mx-auto leading-relaxed">
-                Upload question papers and answer sheets, automatically map answers, review evidence, and generate an assessment report.
+              <p className="text-xl md:text-2xl text-[#6B6480] max-w-4xl mx-auto leading-relaxed font-medium">
+                Upload question papers and answer sheets, automatically map answers, review evidence, and generate comprehensive assessment reports.
               </p>
             </div>
 
@@ -228,13 +233,22 @@ export default function Home() {
               <div className="flex justify-center mt-8">
                 <Button
                   onClick={handleProcess}
-                  disabled={!questionPaper || !answerSheet}
+                  disabled={!questionPaper || !answerSheet || isProcessing}
                   size="lg"
-                  className="bg-gradient-to-r from-[#F97316] to-[#7C3AED] hover:from-[#F97316] hover:to-[#7C3AED] text-white px-16 py-6 text-lg font-bold shadow-xl rounded-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transition-all"
+                  className="bg-gradient-to-r from-[#F97316] to-[#FB923C] hover:from-[#EA580C] hover:to-[#F97316] text-white px-16 py-8 text-xl font-extrabold shadow-2xl hover:shadow-2xl rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transition-all border-4 border-orange-700 disabled:border-gray-300 disabled:bg-gray-400 transform hover:scale-105 disabled:hover:scale-100 ring-4 ring-orange-300 hover:ring-orange-400"
                 >
-                  <Sparkles className="w-5 h-5 mr-2" />
-                  Process Assessment
-                  <ChevronRight className="w-5 h-5 ml-2" />
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="w-6 h-6 mr-3 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-6 h-6 mr-3" />
+                      Process Assessment
+                      <ChevronRight className="w-6 h-6 ml-3" />
+                    </>
+                  )}
                 </Button>
               </div>
             </div>
@@ -277,6 +291,20 @@ export default function Home() {
               </div>
             </div>
 
+            {/* Footer */}
+            <div className="mt-16 pt-8 border-t border-purple-100 text-center">
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <div className="w-8 h-8 bg-gradient-to-br from-[#6D28D9] to-[#F97316] rounded-lg flex items-center justify-center">
+                  <Brain className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-lg font-bold text-[#6D28D9]">Veda</span>
+                <span className="text-lg font-bold text-[#F97316]">AI</span>
+              </div>
+              <p className="text-sm text-[#6B6480]">
+                AI-Powered Assessment Review System
+              </p>
+            </div>
+
             {error && (
               <Card className="mt-8 border-red-200 bg-red-50">
                 <CardContent className="p-6">
@@ -314,34 +342,174 @@ export default function Home() {
 
             {/* Summary Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              <Card className="border-0 shadow-sm bg-white border-t-4 border-t-[#7C3AED]">
+              <Card className="border-2 border-purple-300 shadow-md bg-white border-t-4 border-t-[#6D28D9]">
                 <CardContent className="p-4">
-                  <div className="text-2xl font-bold text-[#18122B]">{assessment.questions.length}</div>
-                  <div className="text-sm text-[#6B6480] font-medium">Questions</div>
+                  <div className="text-3xl font-extrabold text-[#18181B]">{assessment.questions.length}</div>
+                  <div className="text-sm font-bold text-[#71717A] mt-1">Total Questions</div>
                 </CardContent>
               </Card>
-              <Card className="border-0 shadow-sm bg-white border-t-4 border-t-green-600">
+              <Card className="border-2 border-green-400 shadow-md bg-white border-t-4 border-t-green-600">
                 <CardContent className="p-4">
-                  <div className="text-2xl font-bold text-green-700">
+                  <div className="text-3xl font-extrabold text-green-700">
                     {assessment.questions.filter(q => q.status === "answered").length}
                   </div>
-                  <div className="text-sm text-green-600 font-medium">Answered</div>
+                  <div className="text-sm font-bold text-green-600 mt-1">Correct</div>
                 </CardContent>
               </Card>
-              <Card className="border-0 shadow-sm bg-white border-t-4 border-t-red-600">
+              <Card className="border-2 border-orange-400 shadow-md bg-white border-t-4 border-t-[#F97316]">
                 <CardContent className="p-4">
-                  <div className="text-2xl font-bold text-red-700">
+                  <div className="text-3xl font-extrabold text-[#F97316]">
+                    {assessment.questions.filter(q => q.status === "partially_correct").length}
+                  </div>
+                  <div className="text-sm font-bold text-[#F97316] mt-1">Partial</div>
+                </CardContent>
+              </Card>
+              <Card className="border-2 border-red-400 shadow-md bg-white border-t-4 border-t-red-600">
+                <CardContent className="p-4">
+                  <div className="text-3xl font-extrabold text-red-700">
+                    {assessment.questions.filter(q => q.status === "incorrect").length}
+                  </div>
+                  <div className="text-sm font-bold text-red-600 mt-1">Incorrect</div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Additional Summary Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+              <Card className="border-2 border-gray-300 shadow-md bg-white border-t-4 border-t-gray-500">
+                <CardContent className="p-4">
+                  <div className="text-3xl font-extrabold text-gray-700">
                     {assessment.questions.filter(q => q.status === "unanswered").length}
                   </div>
-                  <div className="text-sm text-red-600 font-medium">Unanswered</div>
+                  <div className="text-sm font-bold text-gray-600 mt-1">Unanswered</div>
                 </CardContent>
               </Card>
-              <Card className="border-0 shadow-sm bg-white border-t-4 border-t-[#F97316]">
+              <Card className="border-2 border-purple-400 shadow-md bg-white border-t-4 border-[#6D28D9]">
                 <CardContent className="p-4">
-                  <div className="text-2xl font-bold text-[#F97316]">
-                    {assessment.questions.filter(q => q.status === "needs_review").length}
+                  <div className="text-3xl font-extrabold text-[#6D28D9]">
+                    {assessment.questions.filter(q => q.status === "unable_to_determine").length}
                   </div>
-                  <div className="text-sm text-[#F97316] font-medium">Needs Review</div>
+                  <div className="text-sm font-bold text-[#6D28D9] mt-1">Unable to Determine</div>
+                </CardContent>
+              </Card>
+              <Card className="border-2 border-purple-300 shadow-md bg-white border-t-4 border-t-[#6D28D9]">
+                <CardContent className="p-4">
+                  <div className="text-3xl font-extrabold text-[#18181B]">
+                    {(() => {
+                      const totalScore = assessment.questions.reduce((sum, q) => sum + (q.grading_info?.score || 0), 0);
+                      const count = assessment.questions.filter(q => q.grading_info?.score !== undefined).length;
+                      return count > 0 ? (totalScore / count).toFixed(1) : "0";
+                    })()}%
+                  </div>
+                  <div className="text-sm font-bold text-[#71717A] mt-1">Average Score</div>
+                </CardContent>
+              </Card>
+              <Card className="border-2 border-green-300 shadow-md bg-white border-t-4 border-t-green-600">
+                <CardContent className="p-4">
+                  <div className="text-3xl font-extrabold text-green-700">
+                    {assessment.completeness_analysis?.completion_rate.toFixed(1) || "0"}%
+                  </div>
+                  <div className="text-sm font-bold text-green-600 mt-1">Completion Rate</div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Overall Score Card */}
+            <div className="mb-8">
+              <Card className="border-2 border-purple-300 shadow-md bg-gradient-to-r from-purple-50 to-orange-50">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-bold text-[#18181B] mb-2">Overall Assessment Score</h3>
+                      <div className="flex items-center gap-4">
+                        <div className="text-4xl font-extrabold text-[#6D28D9]">
+                          {(() => {
+                            const totalScore = assessment.questions.reduce((sum, q) => sum + (q.grading_info?.score || 0), 0);
+                            const count = assessment.questions.filter(q => q.grading_info?.score !== undefined).length;
+                            return count > 0 ? (totalScore / count).toFixed(1) : "0";
+                          })()}%
+                        </div>
+                        <div className="text-sm font-bold text-[#71717A]">
+                          Grade: {(() => {
+                            const totalScore = assessment.questions.reduce((sum, q) => sum + (q.grading_info?.score || 0), 0);
+                            const count = assessment.questions.filter(q => q.grading_info?.score !== undefined).length;
+                            const avgScore = count > 0 ? (totalScore / count) : 0;
+                            if (avgScore >= 90) return "A+";
+                            if (avgScore >= 80) return "A";
+                            if (avgScore >= 70) return "B+";
+                            if (avgScore >= 60) return "B";
+                            if (avgScore >= 50) return "C";
+                            return "D";
+                          })()}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="w-24 h-24 bg-gradient-to-br from-[#6D28D9] to-[#F97316] rounded-full flex items-center justify-center shadow-xl">
+                      <CheckCircle2 className="w-12 h-12 text-white" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Performance Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+              <Card className="border-2 border-purple-300 shadow-md bg-gradient-to-br from-purple-50 to-white">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
+                      <CheckCircle2 className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <div className="text-2xl font-extrabold text-[#18181B]">
+                        {assessment.completeness_analysis?.completion_rate.toFixed(1) || "0"}%
+                      </div>
+                      <div className="text-sm font-bold text-[#71717A]">Completion Rate</div>
+                    </div>
+                  </div>
+                  <div className="w-full bg-purple-200 rounded-full h-2">
+                    <div 
+                      className="bg-purple-600 h-2 rounded-full transition-all" 
+                      style={{ width: `${assessment.completeness_analysis?.completion_rate || 0}%` }}
+                    ></div>
+                  </div>
+                  <div className="text-xs font-bold text-purple-700 mt-2">
+                    {assessment.completeness_analysis?.assessment || "Calculating..."}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-2 border-orange-300 shadow-md bg-gradient-to-br from-orange-50 to-white">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center">
+                      <FileText className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <div className="text-2xl font-extrabold text-[#18181B]">{assessment.total_pages}</div>
+                      <div className="text-sm font-bold text-[#71717A]">Total Pages</div>
+                    </div>
+                  </div>
+                  <div className="text-sm font-medium text-[#71717A]">
+                    Answer sheet contains {assessment.total_pages} pages
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-2 border-green-300 shadow-md bg-gradient-to-br from-green-50 to-white">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
+                      <Sparkles className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <div className="text-2xl font-extrabold text-[#18181B]">{assessment.unmatched_answers.length}</div>
+                      <div className="text-sm font-bold text-[#71717A]">Unmatched Answers</div>
+                    </div>
+                  </div>
+                  <div className="text-sm font-medium text-[#71717A]">
+                    {assessment.unmatched_answers.length === 0 ? "All answers mapped successfully" : "Some answers need manual review"}
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -350,11 +518,11 @@ export default function Home() {
             <div className="grid lg:grid-cols-12 gap-6">
               {/* Left Sidebar - Question List */}
               <div className="lg:col-span-4 order-2 lg:order-1">
-                <Card className="shadow-sm border border-purple-200 sticky top-24">
-                  <CardHeader className="bg-gradient-to-r from-purple-50 to-orange-50 border-b border-purple-200">
+                <Card className="shadow-md border-2 border-purple-300 sticky top-24">
+                  <CardHeader className="bg-gradient-to-r from-purple-50 to-orange-50 border-b-2 border-purple-200">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-base font-bold text-[#18122B]">QUESTIONS</CardTitle>
-                      <Badge variant="secondary" className="text-xs bg-white border-purple-300 text-purple-700 font-semibold">
+                      <CardTitle className="text-base font-bold text-[#18181B]">QUESTIONS</CardTitle>
+                      <Badge variant="purple" className="text-xs font-bold">
                         {assessment.questions.length}
                       </Badge>
                     </div>
@@ -370,12 +538,12 @@ export default function Home() {
                 
                 {/* Unmatched Answers */}
                 {assessment.unmatched_answers.length > 0 && (
-                  <Card className="mt-4 shadow-sm border border-orange-200 bg-orange-50">
-                    <CardHeader className="bg-orange-100 border-b border-orange-200">
-                      <CardTitle className="text-sm font-bold flex items-center gap-2 text-[#18122B]">
+                  <Card className="mt-4 shadow-md border-2 border-orange-300 bg-orange-50">
+                    <CardHeader className="bg-orange-100 border-b-2 border-orange-200">
+                      <CardTitle className="text-sm font-bold flex items-center gap-2 text-[#18181B]">
                         <Sparkles className="w-4 h-4 text-[#F97316]" />
                         Unmatched Answers
-                        <Badge variant="secondary" className="text-xs bg-white border-orange-300 text-orange-700 font-semibold">
+                        <Badge variant="orange" className="text-xs font-bold">
                           {assessment.unmatched_answers.length}
                         </Badge>
                       </CardTitle>
@@ -391,9 +559,9 @@ export default function Home() {
               <div className="lg:col-span-8 flex flex-col gap-6 order-1 lg:order-2">
                 {/* Question Detail */}
                 {selectedQuestion && (
-                  <Card className="shadow-sm border border-purple-200">
-                    <CardHeader className="bg-gradient-to-r from-purple-50 to-orange-50 border-b border-purple-200">
-                      <CardTitle className="text-base font-bold text-[#18122B]">Question Details</CardTitle>
+                  <Card className="shadow-md border-2 border-purple-300">
+                    <CardHeader className="bg-gradient-to-r from-purple-50 to-orange-50 border-b-2 border-purple-200">
+                      <CardTitle className="text-base font-bold text-[#18181B]">Question Details</CardTitle>
                     </CardHeader>
                     <CardContent className="p-4">
                       <QuestionDetail questionWithStatus={selectedQuestion} />

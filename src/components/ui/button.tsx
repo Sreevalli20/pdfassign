@@ -8,16 +8,16 @@ export interface ButtonProps
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = "default", size = "default", ...props }, ref) => {
-    const baseStyles = "inline-flex items-center justify-center rounded-md font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+  ({ className, variant = "default", size = "default", type = "button", ...props }, ref) => {
+    const baseStyles = "inline-flex items-center justify-center rounded-md font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-purple-500 disabled:pointer-events-none disabled:opacity-50 cursor-pointer"
     
     const variants = {
-      default: "bg-gradient-to-r from-[#F97316] to-[#7C3AED] text-white hover:from-[#F97316] hover:to-[#7C3AED]",
-      destructive: "bg-red-600 text-white hover:bg-red-700",
-      outline: "border border-purple-300 bg-white text-purple-700 hover:bg-purple-50",
-      secondary: "bg-purple-100 text-purple-900 hover:bg-purple-200",
-      ghost: "hover:bg-purple-100 text-purple-700",
-      link: "text-purple-600 underline-offset-4 hover:underline",
+      default: "bg-gradient-to-r from-[#F97316] to-[#6D28D9] text-white hover:from-[#EA580C] hover:to-[#5B21B6] shadow-md hover:shadow-lg",
+      destructive: "bg-red-600 text-white hover:bg-red-700 shadow-md hover:shadow-lg",
+      outline: "border-2 border-purple-400 bg-white text-purple-700 hover:bg-purple-50 hover:border-purple-500 shadow-sm hover:shadow-md",
+      secondary: "bg-purple-100 text-purple-900 hover:bg-purple-200 border border-purple-300",
+      ghost: "hover:bg-purple-100 text-purple-700 hover:shadow-sm",
+      link: "text-purple-600 underline-offset-4 hover:underline hover:text-purple-700",
     }
     
     const sizes = {
@@ -29,6 +29,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     return (
       <button
+        type={type}
         className={cn(baseStyles, variants[variant], sizes[size], className)}
         ref={ref}
         {...props}

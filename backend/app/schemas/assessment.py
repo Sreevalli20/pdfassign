@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from enum import Enum
 
 
@@ -65,6 +65,9 @@ class QuestionStatus(str, Enum):
     ANSWERED = "answered"
     UNANSWERED = "unanswered"
     NEEDS_REVIEW = "needs_review"
+    PARTIALLY_CORRECT = "partially_correct"
+    INCORRECT = "incorrect"
+    UNABLE_TO_DETERMINE = "unable_to_determine"
 
 
 class AnswerStatus(str, Enum):
@@ -73,12 +76,44 @@ class AnswerStatus(str, Enum):
     NEEDS_REVIEW = "needs_review"
 
 
+class RequirementInfo(BaseModel):
+    type: str
+    description: str
+    detected: bool
+    item: Optional[str] = None
+
+class SatisfactionResult(BaseModel):
+    satisfied: bool
+    evidence: str
+
+class GradingInfo(BaseModel):
+    status: QuestionStatus
+    score: float
+    satisfied_count: int
+    total_requirements: int
+    requirements: List[RequirementInfo]
+    satisfaction_results: List[SatisfactionResult]
+    recommendations: List[str]
+    explanation: str
+    evidence: str
+    presentation_analysis: Optional[Dict[str, Any]] = None
+
 class QuestionWithStatus(BaseModel):
     question: Question
     status: QuestionStatus
     mapping: Optional[AnswerMapping] = None
     answer: Optional[Answer] = None
+    grading_info: Optional[GradingInfo] = None
 
+
+class CompletenessAnalysis(BaseModel):
+    total_questions: int
+    answered: int
+    unanswered: int
+    needs_review: int
+    unable_to_determine: int
+    completion_rate: float
+    assessment: str
 
 class AssessmentResult(BaseModel):
     id: str
@@ -88,6 +123,7 @@ class AssessmentResult(BaseModel):
     total_pages: int
     processing_time_seconds: Optional[float] = None
     error: Optional[str] = None
+    completeness_analysis: Optional[CompletenessAnalysis] = None
 
 
 class ProcessRequest(BaseModel):

@@ -4,11 +4,13 @@ from app.schemas.assessment import AssessmentResult, ProcessingStatus
 from app.services.pdf_processor import PDFProcessor
 from app.services.answer_processor import AnswerProcessor
 from app.services.answer_mapper import AnswerMapper
+from app.services.grading_service import GradingService
 from app.services.report_generator import ReportGenerator
 import uuid
 import os
 import io
 import gc
+import psutil
 from typing import Dict
 import asyncio
 import pypdf
@@ -19,6 +21,7 @@ router = APIRouter()
 MAX_FILE_SIZE = 15 * 1024 * 1024  # 15MB per file
 MAX_PAGES = 30  # Maximum pages per PDF
 MAX_TOTAL_SIZE = 25 * 1024 * 1024  # 25MB total
+MAX_CONCURRENT_PROCESSES = 1  # Limit concurrent processing for memory
 
 # File-based storage for assessments (works in production)
 import json
@@ -54,6 +57,28 @@ def cleanup_old_files(max_age_hours=24):
                     print(f"Cleaned up old upload: {filename}")
     except Exception as e:
         print(f"Error during cleanup: {e}")
+
+def check_memory_usage():
+    """Check current memory usage and return percentage."""
+    try:
+        process = psutil.Process(os.getpid())
+        memory_info = process.memory_info()
+        memory_percent = process.memory_percent()
+        print(f"Memory usage: {memory_info:.1f}% ({memory_info.rss / 1024 / 1024:.1f} MB)")
+        return memory_percent
+    except Exception as e:
+        print(f"Error checking memory: {e}")
+        return 0
+
+def force_garbage_collection():
+    """Force garbage collection and report memory before/after."""
+    try:
+        before_memory = check_memory_usage()
+        gc.collect()
+        after_memory = check_memory_usage()
+        print(f"GC freed: {before_memory - after_memory:.1f}% memory")
+    except Exception as e:
+        print(f"Error during GC: {e}")
 
 def save_assessment(assessment_id: str, data: dict):
     """Save assessment data to file."""
@@ -94,6 +119,9 @@ async def process_assessment(
     
     # Cleanup old files periodically
     cleanup_old_files()
+    
+    # Demo mode is disabled in production - always process real files
+    # The demo_mode parameter is kept for API compatibility but not used
     
     assessment_id = str(uuid.uuid4())
     
@@ -241,10 +269,18 @@ async def process_assessment_sync(
         answer_mapper = AnswerMapper()
         questions_with_status, unmatched_answers = answer_mapper.map_answers_to_questions(questions, answers)
         
+        # Grade the questions using the new grading service
+        grading_service = GradingService()
+        questions_with_status = grading_service.grade_assessment(questions_with_status)
+        
+        # Add completeness analysis
+        completeness_analysis = grading_service.analyze_completeness(questions_with_status)
+        
         # Free processors
         del pdf_processor
         del answer_processor
         del answer_mapper
+        del grading_service
         gc.collect()
         
         result = AssessmentResult(
@@ -253,7 +289,8 @@ async def process_assessment_sync(
             questions=questions_with_status,
             unmatched_answers=unmatched_answers,
             total_pages=total_pages,
-            processing_time_seconds=2.5
+            processing_time_seconds=2.5,
+            completeness_analysis=completeness_analysis
         )
         
         # Convert to dict for JSON serialization and save
@@ -263,7 +300,8 @@ async def process_assessment_sync(
             "questions": [q.model_dump() for q in result.questions],
             "unmatched_answers": [a.model_dump() for a in result.unmatched_answers],
             "total_pages": result.total_pages,
-            "processing_time_seconds": result.processing_time_seconds
+            "processing_time_seconds": result.processing_time_seconds,
+            "completeness_analysis": result.completeness_analysis.model_dump() if result.completeness_analysis else None
         }
         save_assessment(assessment_id, result_dict)
         
@@ -288,7 +326,8 @@ async def process_assessment_sync(
             "questions": [],
             "unmatched_answers": [],
             "total_pages": 0,
-            "error": error_msg
+            "error": error_msg,
+            "completeness_analysis": None
         }
         save_assessment(assessment_id, error_dict)
         

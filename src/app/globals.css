@@ -1,5 +1,20 @@
 @import "tailwindcss";
 
+/* VedaAI Design System - Orange + Purple */
+:root {
+  --primary-purple: #6D28D9;
+  --deep-purple: #4C1D95;
+  --primary-orange: #F97316;
+  --bright-orange: #FB923C;
+  --background: #FAF9FC;
+  --card: #FFFFFF;
+  --main-text: #18181B;
+  --secondary-text: #71717A;
+  --success: #16A34A;
+  --warning: #D97706;
+  --error: #DC2626;
+}
+
 /* react-pdf styles */
 .react-pdf__Page {
   margin: 0 auto;

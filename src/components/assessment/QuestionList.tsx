@@ -13,9 +13,12 @@ const statusConfig: Record<
   QuestionStatus,
   { label: string; variant: "success" | "warning" | "destructive"; icon: any; bgColor: string; textColor: string; borderColor: string }
 > = {
-  answered: { label: "Answered", variant: "success", icon: CheckCircle2, bgColor: "bg-green-100", textColor: "text-green-800", borderColor: "border-green-400" },
-  unanswered: { label: "Unanswered", variant: "destructive", icon: XCircle, bgColor: "bg-red-100", textColor: "text-red-800", borderColor: "border-red-400" },
+  answered: { label: "Correct", variant: "success", icon: CheckCircle2, bgColor: "bg-green-100", textColor: "text-green-800", borderColor: "border-green-400" },
+  partially_correct: { label: "Partial", variant: "warning", icon: AlertCircle, bgColor: "bg-orange-100", textColor: "text-orange-800", borderColor: "border-orange-400" },
+  incorrect: { label: "Incorrect", variant: "destructive", icon: XCircle, bgColor: "bg-red-100", textColor: "text-red-800", borderColor: "border-red-400" },
+  unanswered: { label: "Unanswered", variant: "destructive", icon: XCircle, bgColor: "bg-gray-100", textColor: "text-gray-800", borderColor: "border-gray-400" },
   needs_review: { label: "Needs Review", variant: "warning", icon: AlertCircle, bgColor: "bg-orange-100", textColor: "text-orange-800", borderColor: "border-orange-400" },
+  unable_to_determine: { label: "Unable to Determine", variant: "warning", icon: AlertCircle, bgColor: "bg-gray-100", textColor: "text-gray-800", borderColor: "border-gray-400" },
 };
 
 const getConfidenceColor = (confidence: number) => {
@@ -48,8 +51,8 @@ export function QuestionList({
             key={item.question.id}
             className={`p-3 cursor-pointer transition-all hover:shadow-lg border-2 rounded-lg ${
               isSelected
-                ? "border-gradient-to-r from-orange-500 to-purple-600 bg-gradient-to-r from-orange-50 to-purple-50 shadow-lg"
-                : "border-purple-300 hover:border-orange-400 hover:bg-orange-50"
+                ? "border-orange-500 bg-gradient-to-r from-orange-50 to-purple-50 shadow-lg"
+                : config.borderColor
             }`}
             onClick={() => onSelectQuestion(item.question.id)}
           >
@@ -76,6 +79,12 @@ export function QuestionList({
                   <span className={`text-xs font-bold ${config.textColor}`}>
                     {config.label}
                   </span>
+                  
+                  {item.grading_info && item.grading_info.score !== undefined && (
+                    <Badge variant="outline" className="text-xs bg-white border-purple-500 text-purple-700 font-bold">
+                      {Math.round(item.grading_info.score)}%
+                    </Badge>
+                  )}
                   
                   {item.answer && (
                     <Badge variant="outline" className="text-xs bg-white border-purple-300 text-purple-700 font-semibold">

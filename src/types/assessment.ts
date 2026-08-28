@@ -54,7 +54,7 @@ export interface AnswerMapping {
   mapping_method?: MappingMethod;
 }
 
-export type QuestionStatus = "answered" | "unanswered" | "needs_review";
+export type QuestionStatus = "answered" | "unanswered" | "needs_review" | "partially_correct" | "incorrect" | "unable_to_determine";
 export type AnswerStatus = "mapped" | "unmatched" | "needs_review";
 
 export interface QuestionWithStatus {
@@ -62,6 +62,25 @@ export interface QuestionWithStatus {
   status: QuestionStatus;
   mapping?: AnswerMapping;
   answer?: Answer;
+  grading_info?: {
+    status: QuestionStatus;
+    score: number;
+    satisfied_count: number;
+    total_requirements: number;
+    requirements: Array<{
+      type: string;
+      description: string;
+      detected: boolean;
+      item?: string;
+    }>;
+    satisfaction_results: Array<{
+      satisfied: boolean;
+      evidence: string;
+    }>;
+    recommendations: string[];
+    explanation: string;
+    evidence: string;
+  };
 }
 
 export interface AssessmentResult {
@@ -72,6 +91,15 @@ export interface AssessmentResult {
   total_pages: number;
   processing_time_seconds?: number;
   error?: string;
+  completeness_analysis?: {
+    total_questions: number;
+    answered: number;
+    unanswered: number;
+    needs_review: number;
+    unable_to_determine: number;
+    completion_rate: number;
+    assessment: string;
+  };
 }
 
 export interface UploadedFile {

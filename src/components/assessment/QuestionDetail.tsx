@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { QuestionWithStatus } from "@/types/assessment";
 import { CheckCircle2, XCircle, AlertTriangle, FileText, MapPin, BarChart3 } from "lucide-react";
+import { GradingDetails } from "./GradingDetails";
 
 interface QuestionDetailProps {
   questionWithStatus: QuestionWithStatus;
@@ -11,9 +12,12 @@ const statusConfig: Record<
   string,
   { label: string; variant: "success" | "warning" | "destructive"; icon: any; bgColor: string; textColor: string; borderColor: string }
 > = {
-  answered: { label: "Answered", variant: "success", icon: CheckCircle2, bgColor: "bg-green-100", textColor: "text-green-800", borderColor: "border-green-400" },
-  unanswered: { label: "Unanswered", variant: "destructive", icon: XCircle, bgColor: "bg-red-100", textColor: "text-red-800", borderColor: "border-red-400" },
+  answered: { label: "Correct", variant: "success", icon: CheckCircle2, bgColor: "bg-green-100", textColor: "text-green-800", borderColor: "border-green-400" },
+  partially_correct: { label: "Partially Correct", variant: "warning", icon: AlertTriangle, bgColor: "bg-orange-100", textColor: "text-orange-800", borderColor: "border-orange-400" },
+  incorrect: { label: "Incorrect", variant: "destructive", icon: XCircle, bgColor: "bg-red-100", textColor: "text-red-800", borderColor: "border-red-400" },
+  unanswered: { label: "Unanswered", variant: "destructive", icon: XCircle, bgColor: "bg-gray-100", textColor: "text-gray-800", borderColor: "border-gray-400" },
   needs_review: { label: "Needs Review", variant: "warning", icon: AlertTriangle, bgColor: "bg-orange-100", textColor: "text-orange-800", borderColor: "border-orange-400" },
+  unable_to_determine: { label: "Unable to Determine", variant: "warning", icon: AlertTriangle, bgColor: "bg-gray-100", textColor: "text-gray-800", borderColor: "border-gray-400" },
 };
 
 const confidenceLabel = (confidence: number) => {
@@ -119,6 +123,9 @@ export function QuestionDetail({ questionWithStatus }: QuestionDetailProps) {
           </div>
         </div>
       )}
+
+      {/* Grading Details */}
+      <GradingDetails questionWithStatus={questionWithStatus} />
     </div>
   );
 }

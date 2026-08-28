@@ -8,3 +8,4 @@ python-dotenv==1.0.1
 aiofiles==24.1.0
 pypdf==5.1.0
 reportlab==4.2.0
+psutil==6.1.0
