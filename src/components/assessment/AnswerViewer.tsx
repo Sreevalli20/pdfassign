@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, FileText, Loader2, Maximize2, Minimize2, Download, AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { Answer, BoundingBox } from "@/types/assessment";
@@ -98,10 +99,6 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
     setShowTextFallback(true);
   };
 
-  const handleNativePdfLoad = () => {
-    console.log('[AnswerViewer] Native PDF loaded successfully');
-  };
-
   const handlePreviousPage = () => {
     setCurrentPage((prev) => Math.max(1, prev - 1));
   };
@@ -172,50 +169,52 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={handleZoomOut} className="h-10 w-10 border-purple-400 text-purple-700 hover:bg-purple-50 rounded-md p-2 transition-colors cursor-pointer" title="Zoom out">
+            <Button variant="outline" size="icon" onClick={handleZoomOut} className="h-10 w-10 border-purple-400 text-purple-700 hover:bg-purple-50">
               <ZoomOut className="w-5 h-5" />
-            </button>
+            </Button>
             <span className="text-sm font-bold text-[#18181B] w-16 text-center bg-white px-3 py-2 rounded-lg border-2 border-purple-300">
               {Math.round(zoom * 100)}%
             </span>
-            <button onClick={handleZoomIn} className="h-10 w-10 border-purple-400 text-purple-700 hover:bg-purple-50 rounded-md p-2 transition-colors cursor-pointer" title="Zoom in">
+            <Button variant="outline" size="icon" onClick={handleZoomIn} className="h-10 w-10 border-purple-400 text-purple-700 hover:bg-purple-50">
               <ZoomIn className="w-5 h-5" />
-            </button>
-            <button onClick={() => setZoom(1)} className="h-10 w-10 border-purple-400 text-purple-700 hover:bg-purple-50 rounded-md p-2 transition-colors cursor-pointer" title="Reset zoom">
+            </Button>
+            <Button variant="outline" size="icon" onClick={() => setZoom(1)} className="h-10 w-10 border-purple-400 text-purple-700 hover:bg-purple-50" title="Reset zoom">
               <Maximize2 className="w-5 h-5" />
-            </button>
+            </Button>
             {assessmentId && (
-              <button onClick={handleDownloadPdf} className="h-10 px-4 border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-bold gap-2 rounded-md transition-colors cursor-pointer">
+              <Button variant="outline" onClick={handleDownloadPdf} className="h-10 px-4 border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-bold gap-2">
                 <Download className="w-4 h-4" />
                 Download
-              </button>
+              </Button>
             )}
           </div>
         </div>
         
         {/* Page Navigation */}
         <div className="flex items-center justify-between pt-4 border-t-2 border-purple-200">
-          <button
+          <Button
+            variant="outline"
             onClick={handlePreviousPage}
             disabled={currentPage === 1}
-            className="gap-2 border-2 border-purple-400 text-purple-700 hover:bg-purple-50 font-bold px-6 py-2 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="gap-2 border-2 border-purple-400 text-purple-700 hover:bg-purple-50 font-bold px-6"
           >
             <ChevronLeft className="w-4 h-4" />
             Previous
-          </button>
+          </Button>
           <div className="flex items-center gap-2">
             <span className="text-lg font-bold text-[#18181B]">
               Page {currentPage} of {totalPages || 1}
             </span>
           </div>
-          <button
+          <Button
+            variant="outline"
             onClick={handleNextPage}
             disabled={currentPage === (totalPages || 1)}
-            className="gap-2 border-2 border-purple-400 text-purple-700 hover:bg-purple-50 font-bold px-6 py-2 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="gap-2 border-2 border-purple-400 text-purple-700 hover:bg-purple-50 font-bold px-6"
           >
             Next
             <ChevronRight className="w-4 h-4" />
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -235,17 +234,9 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
                 className="w-full h-full border-0 rounded-xl shadow-2xl flex-1 bg-white"
                 title="Answer Sheet PDF"
                 onError={handleNativePdfError}
-                onLoad={handleNativePdfLoad}
+                onLoad={() => console.log('[AnswerViewer] Native PDF loaded successfully')}
                 style={{ minHeight: '600px' }}
               />
-              <div className="mt-4 text-center">
-                <button
-                  onClick={() => window.open(nativePdfUrl, '_blank')}
-                  className="text-sm text-purple-600 hover:text-purple-800 underline"
-                >
-                  Open PDF in new tab if viewer doesn't load
-                </button>
-              </div>
             </div>
           ) : viewerMode === 'fallback' || showTextFallback ? (
             <div className="flex items-center justify-center p-12 w-full">
@@ -258,33 +249,26 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
                 
                 {assessmentId && (
                   <div className="flex flex-col gap-3 mb-8">
-                    <button 
+                    <Button 
+                      variant="outline" 
                       onClick={handleDownloadPdf} 
-                      className="gap-2 border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-bold px-8 py-2 rounded-md transition-colors cursor-pointer"
+                      className="gap-2 border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-bold px-8"
                     >
                       <Download className="w-5 h-5" />
                       Download Answer Sheet
-                    </button>
-                    <button 
+                    </Button>
+                    <Button 
+                      variant="outline" 
                       onClick={() => {
                         if (nativePdfUrl) {
                           window.open(nativePdfUrl, '_blank');
                         }
                       }}
-                      className="gap-2 border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-bold px-8 py-2 rounded-md transition-colors cursor-pointer"
+                      className="gap-2 border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-bold px-8"
                     >
                       <Maximize2 className="w-5 h-5" />
                       Open in New Tab
-                    </button>
-                    <a
-                      href={`https://pdfassign.onrender.com/api/assessment/${assessmentId}/answer-sheet`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="gap-2 border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-bold px-8 py-2 rounded-md transition-colors cursor-pointer inline-flex items-center justify-center"
-                    >
-                      <Maximize2 className="w-5 h-5" />
-                      Open from Backend
-                    </a>
+                    </Button>
                   </div>
                 )}
                 
@@ -389,22 +373,26 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
               </div>
               <div className="flex gap-2">
                 {assessmentId && (
-                  <button 
+                  <Button 
+                    variant="outline" 
+                    size="sm"
                     onClick={handleDownloadPdf} 
-                    className="gap-2 border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-bold px-3 py-1.5 rounded-md transition-colors cursor-pointer text-sm"
+                    className="gap-2 border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-bold"
                   >
                     <Download className="w-4 h-4" />
                     Download
-                  </button>
+                  </Button>
                 )}
                 {nativePdfUrl && (
-                  <button 
+                  <Button 
+                    variant="outline" 
+                    size="sm"
                     onClick={() => window.open(nativePdfUrl, '_blank')}
-                    className="gap-2 border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-bold px-3 py-1.5 rounded-md transition-colors cursor-pointer text-sm"
+                    className="gap-2 border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-bold"
                   >
                     <Maximize2 className="w-4 h-4" />
                     Open PDF
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
@@ -431,13 +419,15 @@ export function AnswerViewer({ answer, totalPages, assessmentId }: AnswerViewerP
             </div>
             <div className="flex items-center justify-center gap-2 flex-wrap">
               {answer.pages.map((page, idx) => (
-                <button
+                <Button
                   key={page}
+                  variant={currentPage === page ? "default" : "outline"}
+                  size="sm"
                   onClick={() => setCurrentPage(page)}
-                  className={currentPage === page ? "bg-gradient-to-r from-orange-500 to-purple-600 hover:from-orange-600 hover:to-purple-700 text-white font-bold px-6 py-2 rounded-md transition-colors cursor-pointer" : "border-2 border-purple-400 text-purple-700 hover:bg-purple-50 font-bold px-6 py-2 rounded-md transition-colors cursor-pointer"}
+                  className={currentPage === page ? "bg-gradient-to-r from-orange-500 to-purple-600 hover:from-orange-600 hover:to-purple-700 text-white font-bold px-6" : "border-2 border-purple-400 text-purple-700 hover:bg-purple-50 font-bold px-6"}
                 >
                   Page {page}
-                </button>
+                </Button>
               ))}
             </div>
           </div>

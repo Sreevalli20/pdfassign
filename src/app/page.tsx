@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { FileUpload } from "@/components/upload/FileUpload";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProcessingView } from "@/components/processing/ProcessingView";
 import { QuestionList } from "@/components/assessment/QuestionList";
@@ -14,7 +15,7 @@ import {
   QuestionWithStatus,
   ProcessingStatus,
 } from "@/types/assessment";
-import { processAssessment, getAssessment, getAssessmentReport } from "@/lib/api";
+import { processAssessment, getAssessmentReport } from "@/lib/api";
 import { Brain, FileText, Sparkles, ArrowLeft, Settings, HelpCircle, Upload, Search, Highlighter, CheckCircle, Download, ChevronRight, Loader2, CheckCircle2 } from "lucide-react";
 import dynamic from "next/dynamic";
 
@@ -44,53 +45,18 @@ export default function Home() {
         answerSheet.file
       );
       
-      // If result is not completed, poll for completion
-      if (result.status !== "completed" && result.status !== "failed") {
-        setAssessment(result);
-        await pollForCompletion(result.id);
-      } else {
-        setAssessment(result);
-        if (result.questions.length > 0) {
-          setSelectedQuestionId(result.questions[0].question.id);
-        }
-        setIsProcessing(false);
+      // Backend processes synchronously, so result is immediately available
+      setAssessment(result);
+      if (result.questions.length > 0) {
+        setSelectedQuestionId(result.questions[0].question.id);
       }
+      setIsProcessing(false);
     } catch (error) {
       console.error("Processing failed:", error);
       const errorMessage = error instanceof Error ? error.message : "Failed to process documents. Please try again.";
       setError(errorMessage);
       setIsProcessing(false);
     }
-  };
-
-  const pollForCompletion = async (assessmentId: string) => {
-    const maxAttempts = 60;
-    let attempts = 0;
-    
-    while (attempts < maxAttempts) {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      try {
-        const result = await getAssessment(assessmentId);
-        setAssessment(result);
-        setProcessingStatus(result.status);
-        
-        if (result.status === "completed" || result.status === "failed") {
-          if (result.status === "completed" && result.questions.length > 0) {
-            setSelectedQuestionId(result.questions[0].question.id);
-          }
-          setIsProcessing(false);
-          return;
-        }
-      } catch (error) {
-        console.error("Polling failed:", error);
-      }
-      
-      attempts++;
-    }
-    
-    setError("Processing timed out. Please try again.");
-    setIsProcessing(false);
   };
 
 
@@ -146,28 +112,30 @@ export default function Home() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <button className="text-[#6B6480] hover:text-[#7C3AED] hover:bg-purple-50 border border-transparent hover:border-purple-200 rounded-md p-2 transition-colors cursor-pointer">
+              <Button variant="ghost" size="icon" className="text-[#6B6480] hover:text-[#7C3AED] hover:bg-purple-50 border border-transparent hover:border-purple-200">
                 <HelpCircle className="w-5 h-5" />
-              </button>
-              <button className="text-[#6B6480] hover:text-[#7C3AED] hover:bg-purple-50 border border-transparent hover:border-purple-200 rounded-md p-2 transition-colors cursor-pointer">
+              </Button>
+              <Button variant="ghost" size="icon" className="text-[#6B6480] hover:text-[#7C3AED] hover:bg-purple-50 border border-transparent hover:border-purple-200">
                 <Settings className="w-5 h-5" />
-              </button>
+              </Button>
               {assessment && (
                 <>
-                  <button 
+                  <Button 
+                    variant="outline" 
                     onClick={handleDownloadReport} 
-                    className="gap-2 border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-bold shadow-sm hover:shadow-md px-4 py-2 rounded-md transition-all cursor-pointer"
+                    className="gap-2 border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-bold shadow-sm hover:shadow-md"
                   >
                     <Download className="w-4 h-4" />
                     Download Report
-                  </button>
-                  <button 
+                  </Button>
+                  <Button 
+                    variant="outline" 
                     onClick={handleReset} 
-                    className="gap-2 border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-bold shadow-sm hover:shadow-md px-4 py-2 rounded-md transition-all cursor-pointer"
+                    className="gap-2 border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-bold shadow-sm hover:shadow-md"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     Back to Upload
-                  </button>
+                  </Button>
                 </>
               )}
             </div>
@@ -194,7 +162,7 @@ export default function Home() {
 
             {/* Upload Cards */}
             <div className="mb-12">
-              <div className="grid md:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <FileUpload
                   title="Question Paper"
                   description="Upload your assignment or exam paper (PDF, PNG, JPG)"
@@ -228,10 +196,11 @@ export default function Home() {
               </div>
 
               <div className="flex justify-center mt-8">
-                <button
+                <Button
                   onClick={handleProcess}
                   disabled={!questionPaper || !answerSheet || isProcessing}
-                  className="bg-[#F97316] text-white border-[#F97316] hover:bg-[#EA580C] hover:border-[#EA580C] disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400 disabled:border-gray-400 disabled:text-white px-16 py-8 text-xl font-extrabold shadow-2xl hover:shadow-2xl rounded-2xl transition-all border-4 border-orange-700 disabled:border-gray-300 transform hover:scale-105 disabled:hover:scale-100 ring-4 ring-orange-300 hover:ring-orange-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-500 cursor-pointer"
+                  size="lg"
+                  className="bg-[#F97316] text-white border-[#F97316] hover:bg-[#EA580C] hover:border-[#EA580C] disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400 disabled:border-gray-400 disabled:text-white px-16 py-8 text-xl font-extrabold shadow-2xl hover:shadow-2xl rounded-2xl transition-all border-4 border-orange-700 disabled:border-gray-300 transform hover:scale-105 disabled:hover:scale-100 ring-4 ring-orange-300 hover:ring-orange-400"
                 >
                   {isProcessing ? (
                     <>
@@ -245,13 +214,13 @@ export default function Home() {
                       <ChevronRight className="w-6 h-6 ml-3" />
                     </>
                   )}
-                </button>
+                </Button>
               </div>
             </div>
 
             {/* Value Preview Section */}
             <div className="border-t border-purple-100 pt-16">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
                 <div className="text-center">
                   <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mx-auto mb-4">
                     <Upload className="w-6 h-6 text-orange-600" />
@@ -313,12 +282,13 @@ export default function Home() {
                       <p className="text-red-700 text-sm">{error}</p>
                     </div>
                   </div>
-                  <button 
+                  <Button 
+                    variant="outline" 
                     onClick={handleProcess}
-                    className="mt-4 border-red-300 text-red-700 hover:bg-red-100 px-4 py-2 rounded-md transition-colors cursor-pointer"
+                    className="mt-4 border-red-300 text-red-700 hover:bg-red-100"
                   >
                     Retry
-                  </button>
+                  </Button>
                 </CardContent>
               </Card>
             )}

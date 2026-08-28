@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { QuestionWithStatus } from "@/types/assessment";
 import { CheckCircle2, XCircle, AlertCircle, ChevronDown, ChevronUp, Lightbulb, Target } from "lucide-react";
 import { useState } from "react";
@@ -97,16 +98,17 @@ export function GradingDetails({ questionWithStatus }: GradingDetailsProps) {
 
       {/* Requirements Checklist */}
       <Card className="border-2 border-orange-300 bg-white">
-        <button
+        <Button
+          variant="ghost"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full justify-between text-left font-bold text-[#18181B] hover:bg-orange-50 px-6 py-4 rounded-t-xl border-b border-orange-200 flex items-center transition-colors cursor-pointer"
+          className="w-full justify-between text-left font-bold text-[#18181B] hover:bg-orange-50 px-6 py-4 rounded-t-xl border-b border-orange-200"
         >
           <span className="flex items-center gap-2">
             <Target className="w-5 h-5 text-orange-600" />
             REQUIREMENT CHECKLIST
           </span>
           {isExpanded ? <ChevronUp className="w-5 h-5 text-orange-600" /> : <ChevronDown className="w-5 h-5 text-orange-600" />}
-        </button>
+        </Button>
 
         {isExpanded && (
           <div className="p-4 space-y-3">

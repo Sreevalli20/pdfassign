@@ -39,20 +39,40 @@ export async function processAssessment(
       const errorJson = JSON.parse(errorText);
       const detail = errorJson.detail || errorText;
       
-      // Provide user-friendly messages for common errors
-      if (detail.includes("Invalid question paper format")) {
-        userMessage = "The question paper must be a PDF or image file (PNG, JPG).";
-      } else if (detail.includes("Invalid answer sheet format")) {
-        userMessage = "The answer sheet must be a PDF or image file (PNG, JPG).";
-      } else if (detail.includes("size")) {
-        userMessage = "The file is too large. Please upload a smaller file.";
-      } else if (detail.includes("timeout")) {
-        userMessage = "Processing took too long. Please try with smaller files.";
+      // Handle specific HTTP status codes
+      if (response.status === 400) {
+        if (detail.includes("Invalid question paper format")) {
+          userMessage = "The question paper must be a PDF or image file (PNG, JPG).";
+        } else if (detail.includes("Invalid answer sheet format")) {
+          userMessage = "The answer sheet must be a PDF or image file (PNG, JPG).";
+        } else if (detail.includes("size")) {
+          userMessage = "The file is too large. Please upload a smaller file.";
+        } else if (detail.includes("pages")) {
+          userMessage = "The file has too many pages. Please upload a file with fewer pages.";
+        } else {
+          userMessage = detail;
+        }
+      } else if (response.status === 422) {
+        userMessage = "Invalid request format. Please check your files and try again.";
+      } else if (response.status === 404) {
+        userMessage = "The assessment service endpoint was not found. Please contact support.";
+      } else if (response.status === 500) {
+        userMessage = "The assessment service encountered an error. Please try again later.";
       } else {
         userMessage = detail;
       }
     } catch {
-      userMessage = "We couldn't process the assessment. Please make sure the files are valid PDFs or images and try again.";
+      if (response.status === 400) {
+        userMessage = "Invalid request. Please check your files and try again.";
+      } else if (response.status === 422) {
+        userMessage = "Invalid request format. Please check your files and try again.";
+      } else if (response.status === 404) {
+        userMessage = "The assessment service endpoint was not found. Please contact support.";
+      } else if (response.status === 500) {
+        userMessage = "The assessment service encountered an error. Please try again later.";
+      } else {
+        userMessage = "We couldn't process the assessment. Please make sure the files are valid PDFs or images and try again.";
+      }
     }
     
     throw new Error(userMessage);
@@ -65,44 +85,8 @@ export async function processAssessment(
   (result as any)._assessmentId = result.id;
   (result as any)._answerSheetFile = answerSheetFile;
   
-  // Poll for completion if status is not completed
-  if (result.status !== "completed" && result.status !== "failed") {
-    return await pollForCompletion(result.id);
-  }
-  
+  // Backend processes synchronously, so no polling needed
   return result;
-}
-
-async function pollForCompletion(assessmentId: string): Promise<AssessmentResult> {
-  const maxAttempts = 60; // 2 minutes with 2-second intervals
-  let attempts = 0;
-  
-  while (attempts < maxAttempts) {
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    const url = `${PRODUCTION_API_URL}/api/assessment/${assessmentId}`;
-    console.log(`[API] Polling attempt ${attempts + 1}/${maxAttempts}:`, url);
-    
-    const response = await fetch(url);
-    console.log(`[API] Poll status:`, response.status, response.statusText);
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('[API] Poll error:', errorText);
-      throw new Error(`Failed to fetch assessment status: ${response.status}`);
-    }
-    
-    const result = await response.json();
-    console.log(`[API] Poll result:`, result.status);
-    
-    if (result.status === "completed" || result.status === "failed") {
-      return result;
-    }
-    
-    attempts++;
-  }
-  
-  throw new Error("Assessment processing timed out");
 }
 
 export async function getAssessment(assessmentId: string): Promise<AssessmentResult> {
